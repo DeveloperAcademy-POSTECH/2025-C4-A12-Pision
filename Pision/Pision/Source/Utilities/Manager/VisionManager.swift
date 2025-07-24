@@ -17,6 +17,9 @@ final class VisionManager: ObservableObject {
   // Published Var
   @Published private(set) var ears: [Float] = []
   @Published private(set) var yaws: [Float] = []
+  @Published private(set) var latestYaw: Float = 10.0
+  @Published private(set) var shoulderPoints: (left: CGPoint, right: CGPoint)? = nil
+  @Published private(set) var faceRectangle: [CGRect] = []
   @Published private(set) var mlPredictions: [String] = []
   @Published private(set) var blinkCount: Int = 0
   
@@ -24,7 +27,10 @@ final class VisionManager: ObservableObject {
   private let sequenceHandler = VNSequenceRequestHandler()
   private let faceRequest = VNDetectFaceLandmarksRequest()
   private let poseRequest = VNDetectHumanBodyPoseRequest()
+  
+  // Manager
   private let mlManager = MLManager()!
+  private let scoreManager = ScoreManager()
   
   private var isBlink: Bool = false
 }
@@ -46,11 +52,23 @@ extension VisionManager {
   func processFaceLandMark(pixelBuffer: CVPixelBuffer) {
     do {
       try sequenceHandler.perform([faceRequest], on: pixelBuffer)
-      guard let results = faceRequest.results else { return }
+      guard let results = faceRequest.results, !results.isEmpty else {
+        DispatchQueue.main.async {
+          self.latestYaw = 10.0
+        }
+        return
+      }
+      
       for face in results {
         if let yaw = face.yaw?.floatValue {
-          yaws.append(abs(yaw))
+          let absYaw = abs(yaw)
+          yaws.append(absYaw)
+          
+          DispatchQueue.main.async {
+            self.latestYaw = absYaw
+          }
         }
+        
         if let landmarks = face.landmarks,
            let leftEye = landmarks.leftEye,
            let rightEye = landmarks.rightEye {
@@ -73,8 +91,21 @@ extension VisionManager {
     do {
       try sequenceHandler.perform([poseRequest], on: pixelBuffer)
       guard let first = poseRequest.results?.first else { return }
-      let label = mlManager.bodyPosePredict(from: first)
-      mlPredictions.append(label)
+      guard let left = try? first.recognizedPoint(.leftShoulder),
+            let right = try? first.recognizedPoint(.rightShoulder),
+            left.confidence > 0.2, right.confidence > 0.2 else {
+        DispatchQueue.main.async {
+          self.shoulderPoints = nil
+        }
+        return
+      }
+      
+      let points = (left: CGPoint(x: left.x, y: left.y),
+                    right: CGPoint(x: right.x, y: right.y))
+      
+      DispatchQueue.main.async {
+        self.shoulderPoints = points
+      }
     } catch {
       print("Body Pose 처리 실패")
     }
@@ -95,7 +126,7 @@ extension VisionManager {
     let h = pts[0].eyeDistance(to: pts[3])
     return Float((v1 + v2) / (2 * h))
   }
-
+  
   /// 양쪽 눈의 EAR 값을 기반으로 눈 깜빡임 여부를 판단하고 깜빡임 횟수를 증가시킵니다.
   /// EAR 값이 일정 임계값(threshold)보다 작을 경우 눈을 감은 것으로 판단합니다.
   /// - Parameters:
