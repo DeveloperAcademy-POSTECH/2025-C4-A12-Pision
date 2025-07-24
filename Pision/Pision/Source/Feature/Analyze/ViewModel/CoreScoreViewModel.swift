@@ -32,6 +32,31 @@ class CoreScoreViewModel: ObservableObject {
     String(format: "%.1f", taskData.averageCoreScore())
   }
 
+  /// 데이터 포인트 개수
+  var dataPointCount: Int {
+    return taskData.avgCoreDatas.count
+  }
+
+  /// 정규화된 Yaw Score (고개 자세) - 파란색
+  var normalizedYawScores: [Double] {
+    return taskData.avgCoreDatas.map { Double($0.avgYawScore) * 2.5 }
+  }
+
+  /// 정규화된 Eye Open Score (EAR 비율) - 검은색
+  var normalizedEyeOpenScores: [Double] {
+    return taskData.avgCoreDatas.map { Double($0.avgEyeOpenScore) * 4.0 }
+  }
+
+  /// 정규화된 Eye Closed Score (눈 EAR) - 분홍색
+  var normalizedEyeClosedScores: [Double] {
+    return taskData.avgCoreDatas.map { Double($0.avgEyeClosedScore) * 5.0 }
+  }
+
+  /// 정규화된 Blink Frequency (깜빡임 빈도) - 초록색
+  var normalizedBlinkFrequencies: [Double] {
+    return taskData.avgCoreDatas.map { Double($0.avgBlinkFrequency) * (100.0 / 15.0) }
+  }
+
   func toggleExpanded() {
     withAnimation(.easeInOut(duration: 0.3)) {
       isExpanded.toggle()
