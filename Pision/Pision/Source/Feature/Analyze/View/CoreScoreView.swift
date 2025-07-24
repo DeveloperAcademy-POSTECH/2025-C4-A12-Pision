@@ -1,3 +1,10 @@
+//
+//  CoreScoreView.swift
+//  Pision
+//
+//  Created by rundo on 7/25/25.
+//
+
 import SwiftUI
 import SwiftData
 
@@ -58,6 +65,7 @@ struct CoreScoreView: View {
         yAxisLabels
         coreScoreChartWithLabels
       }
+
       coreScoreChartLegend
     }
     .frame(height: 230)
@@ -96,40 +104,40 @@ struct CoreScoreView: View {
     }
   }
 
-  // 수평 및 수직 그리드 라인들
-    private var gridLines: some View {
-      let chartWidth = CGFloat(max(viewModel.dataPointCount * 30, 300))
-      let chartHeight: CGFloat = 95
-      
-      return ZStack {
-        // 수평 그리드 라인
-        VStack {
-          ForEach(0..<5) { _ in
-            Rectangle()
-              .fill(Color.BR_50.opacity(0.5))
-              .frame(width: chartWidth, height: 1)
-            Spacer()
-          }
+  /// 수평 및 수직 그리드 라인들
+  private var gridLines: some View {
+    let chartWidth = CGFloat(max(viewModel.dataPointCount * 30, 300))
+    let chartHeight: CGFloat = 95
+    
+    return ZStack {
+      // 수평 그리드 라인
+      VStack {
+        ForEach(0..<5) { _ in
           Rectangle()
             .fill(Color.BR_50.opacity(0.5))
             .frame(width: chartWidth, height: 1)
+          Spacer()
         }
-        .frame(height: chartHeight)
-        
-        // 수직 그리드 라인
-        HStack {
-          ForEach(0..<viewModel.dataPointCount, id: \.self) { index in
-            Rectangle()
-              .fill(Color.BR_50.opacity(0.3))
-              .frame(width: 1, height: chartHeight)
-            if index < viewModel.dataPointCount - 1 {
-              Spacer()
-            }
+        Rectangle()
+          .fill(Color.BR_50.opacity(0.5))
+          .frame(width: chartWidth, height: 1)
+      }
+      .frame(height: chartHeight)
+      
+      // 수직 그리드 라인
+      HStack {
+        ForEach(0..<viewModel.dataPointCount, id: \.self) { index in
+          Rectangle()
+            .fill(Color.BR_50.opacity(0.3))
+            .frame(width: 1, height: chartHeight)
+          if index < viewModel.dataPointCount - 1 {
+            Spacer()
           }
         }
-        .frame(width: chartWidth, height: chartHeight)
       }
+      .frame(width: chartWidth, height: chartHeight)
     }
+  }
 
   /// 커스텀 라인 차트
   private var lineChart: some View {
@@ -194,15 +202,16 @@ struct CoreScoreView: View {
         .stroke(color, lineWidth: 2)
       }
       
-      // 포인트 그리기
-      ForEach(Array(points.enumerated()), id: \.offset) { index, point in
+      // 최고점에만 포인트 그리기
+      if let maxValue = points.max(),
+         let maxIndex = points.firstIndex(of: maxValue) {
         let stepX = width / CGFloat(max(points.count - 1, 1))
-        let x = CGFloat(index) * stepX
-        let y = height - CGFloat(point / 100.0) * height
+        let x = CGFloat(maxIndex) * stepX
+        let y = height - CGFloat(maxValue / 100.0) * height
         
         Circle()
           .fill(color)
-          .frame(width: 6, height: 6)
+          .frame(width: 8, height: 8)
           .position(x: x, y: y)
       }
     }
