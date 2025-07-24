@@ -21,7 +21,8 @@ extension MainView {
         Spacer()
         
         VStack {
-          Button {
+          NavigationLink {
+            MeasureView()
           } label: {
             Text("시작")
               .foregroundStyle(.white)
@@ -29,8 +30,6 @@ extension MainView {
               .background(.black)
               .clipShape(.circle)
           }
-          .buttonStyle(.plain)
-          
           bottomButtonView
         }
         Spacer()
@@ -40,7 +39,8 @@ extension MainView {
   
   private var bottomButtonView: some View {
     HStack {
-      Button {
+      NavigationLink {
+        AnalyzeView()
       } label: {
         Text("기록")
           .foregroundStyle(.white)
@@ -48,7 +48,6 @@ extension MainView {
           .background(.black)
           .clipShape(.circle)
       }
-      .buttonStyle(.plain)
       
       Spacer()
       
@@ -66,5 +65,7 @@ extension MainView {
 }
 
 #Preview {
-  MainView()
+  NavigationStack {
+    MainView()
+  }
 }
