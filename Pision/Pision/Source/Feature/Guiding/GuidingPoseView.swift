@@ -8,7 +8,9 @@
 import SwiftUI
 
 // MARK: - Var
-struct GuidingPoseView: View { }
+struct GuidingPoseView: View {
+  @State private var isNavigate: Bool = false
+}
 
 // MARK: - View
 extension GuidingPoseView {
@@ -39,7 +41,7 @@ extension GuidingPoseView {
         
         GuidingButtonView(
           title: "확인했어요",
-          action: { print("Tapped Next") }
+          action: { processNavigation() }
         )
         .padding(.bottom, 32)
         .padding(.horizontal, 21)
@@ -49,6 +51,16 @@ extension GuidingPoseView {
       .background(.W_00)
       .clipShape(RoundedRectangle(cornerRadius: 15.27))
     }
+    .navigationBarBackButtonHidden()
+    .navigationDestination(isPresented: $isNavigate) {
+      MeasureView()
+    }
+  }
+}
+
+extension GuidingPoseView {
+  private func processNavigation() {
+    isNavigate = true
   }
 }
 
