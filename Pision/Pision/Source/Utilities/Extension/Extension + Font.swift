@@ -32,7 +32,7 @@ extension Font {
   struct FontSystem {
     static let h0 = Font.spoqaHanSansNeo(type: .bold, size: 38)
     static let h1 = Font.spoqaHanSansNeo(type: .bold, size: 24)
-    static let h2 = Font.spoqaHanSansNeo(type: .bold, size: 20)
+    static let h2 = Font.spoqaHanSansNeo(type: .regular, size: 20)
     static let h3 = Font.spoqaHanSansNeo(type: .bold, size: 18)
     static let h4 = Font.spoqaHanSansNeo(type: .bold, size: 16)
     static let b1 = Font.spoqaHanSansNeo(type: .medium, size: 14)
