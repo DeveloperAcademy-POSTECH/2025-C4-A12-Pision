@@ -1,16 +1,19 @@
 //
-//  CustomNavigation.swift
+//  CustomNavigationbar.swift
 //  Pision
 //
-//  Created by 여성일 on 7/24/25.
+//  Created by 여성일 on 7/25/25.
 //
 
 import SwiftUI
 import UIKit
 
-struct CustomNavigationBar: View {
+struct CustomNavigationbar: View {
   let title: String
+  let titleColor: Color
   let showBackButton: Bool
+  let buttonColor: Color
+  
   //let rightButtonContent: RightContent?
   //let rightButtonAction: (() -> Void)?
   
@@ -19,29 +22,33 @@ struct CustomNavigationBar: View {
   init(
     title: String,
     showBackButton: Bool = true,
-//     
+    titleColor: Color = .B_00,
+    buttonColor: Color = .B_00
+    //
   ) {
     self.title = title
     self.showBackButton = showBackButton
-//    self.rightButtonContent = rightButtonContent
-//    self.rightButtonAction = rightButtonAction
+    self.titleColor = titleColor
+    self.buttonColor = buttonColor
+    //    self.rightButtonContent = rightButtonContent
+    //    self.rightButtonAction = rightButtonAction
   }
-  
+}
+
+extension CustomNavigationbar {
   var body: some View {
     ZStack {
-      // 타이틀
       Text(title)
         .font(.FontSystem.h2)
-        .foregroundColor(.B_00)
+        .foregroundColor(titleColor)
         .frame(maxWidth: .infinity, alignment: .center)
       
-      // 왼쪽 버튼
       HStack {
         if showBackButton {
           Button(action: { dismiss() }) {
             Image(systemName: "chevron.left")
               .font(.title2)
-              .foregroundColor(.B_00)
+              .foregroundColor(buttonColor)
               .frame(width: 24, height: 24)
           }
         } else {
@@ -50,7 +57,6 @@ struct CustomNavigationBar: View {
         Spacer()
       }
       
-      // 오른쪽 버튼
 //      HStack {
 //        Spacer()
 //        if let content = rightButtonContent,
@@ -67,17 +73,5 @@ struct CustomNavigationBar: View {
     }
     .padding(.horizontal)
     .padding(.bottom, 8)
-  }
-}
-
-/// 뒤로가기 스와이프
-extension UINavigationController: @retroactive UIGestureRecognizerDelegate {
-  open override func viewDidLoad() {
-    super.viewDidLoad()
-    interactivePopGestureRecognizer?.delegate = self
-  }
-  
-  public func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
-    return viewControllers.count > 1
   }
 }
