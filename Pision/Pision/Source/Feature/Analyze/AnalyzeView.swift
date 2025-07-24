@@ -71,18 +71,16 @@ extension AnalyzeView {
           VStack(alignment: .leading, spacing: 3) {
             (
               Text("당신의 집중률은 ")
-                .font(.FontSystem.h2) +
+                .font(.spoqaHanSansNeo(type: .regular, size: 20)) +
               Text("\(Int(taskData.averageScore))%")
                 .font(.FontSystem.h2)
-                .bold()
             )
             .foregroundColor(Color.B_10)
             (
               Text("매우 준수한 상태")
-                .font(.FontSystem.h2)
-                .bold() +
+                .font(.FontSystem.h2) +
               Text("입니다.")
-                .font(.FontSystem.h2)
+                .font(.spoqaHanSansNeo(type: .regular, size: 20))
             )
             .foregroundColor(Color.B_10)
           }
@@ -129,7 +127,7 @@ extension AnalyzeView {
                 .fill(.BR_50)
                 .frame(width: 12, height: 12)
                 .cornerRadius(1.3)
-              Text("전체시간")
+              Text("공부시간")
                 .font(.FontSystem.b1)
                 .foregroundColor(Color.B_20)
             }
@@ -153,71 +151,133 @@ extension AnalyzeView {
     let taskData: TaskData
     
     var body: some View {
-      VStack(alignment: .leading, spacing: 0) {
+      VStack(alignment: .leading, spacing: 8) {
         Text("상세 정보")
-          .font(.headline)
-          .foregroundColor(.secondary)
+          .font(.FontSystem.h2)
+          .foregroundColor(.B_00)
         
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 15) {
           Text("시간별 집중률")
-            .font(.headline)
-          
-          ScrollView(.horizontal, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 8) {
-              // 차트 부분
-              HStack(spacing: 7.1) {
-                ForEach(Array(taskData.focusRatio.enumerated()), id: \.offset) { idx, ratio in
-                  ZStack {
+            .font(.FontSystem.h4)
+          // 왼쪽 지표 + 스크롤 화면
+          HStack(spacing: 5){
+            VStack {
+              Text("100")
+                .font(Font.custom("Spoqa Han Sans Neo", size: 12))
+//              Spacer()
+//              Text("평균")
+//                .font(Font.custom("Spoqa Han Sans Neo", size: 12))
+//                .foregroundColor(Color.BR_00)
+              Spacer()
+              Text("0")
+                .font(Font.custom("Spoqa Han Sans Neo", size: 12))
+
+            }
+            .foregroundColor(Color.B_00)
+            .padding(.bottom, 5) // 0과 가로선 맞추기
+            ScrollView(.horizontal, showsIndicators: false) {
+              // 차트 + 10분
+              VStack(alignment: .leading, spacing: 2) {
+                // 차트 부분
+                ZStack(alignment: .leading) {
+                  // 가로선 배경
+                  VStack {
                     Rectangle()
                       .fill(Color.BR_50)
-                      .frame(width: 15.38, height: 95)
-                      .cornerRadius(4)
-                    VStack {
-                      Spacer()
-                      Rectangle()
-                        .fill(Color.BR_20)
-                        .frame(width: 15.38, height: CGFloat(ratio * (95.0 / 100.0)))
-                        .cornerRadius(4)
+                      .frame(height: 1)
+                    Spacer()
+                    Rectangle()
+                      .fill(Color.BR_50)
+                      .frame(height: 1)
+                    Spacer()
+                    Rectangle()
+                      .fill(Color.BR_50)
+                      .frame(height: 1)
+                    Spacer()
+                    Rectangle()
+                      .fill(Color.BR_50)
+                      .frame(height: 1)
+                    Spacer()
+                    Rectangle()
+                      .fill(Color.BR_50)
+                      .frame(height: 1)
+                  }
+                  // 그래프 막대 부분들
+                  HStack(spacing: 7.1) {
+                    ForEach(Array(taskData.focusRatio.enumerated()), id: \.offset) { idx, ratio in
+                      ZStack {
+                        Rectangle() // 회색 배경 캡슐
+                          .fill(Color.BR_50)
+                          .frame(width: 15.38, height: 95)
+                          .cornerRadius(4)
+                        VStack { // 파란 점수 캡슐
+                          Spacer()
+                          Rectangle()
+                            .fill(Color.BR_20)
+                            .frame(width: 15.38, height: CGFloat(ratio * (95.0 / 100.0)))
+                            .cornerRadius(4)
+                        }
+                      }
                     }
                   }
+                  .frame(height: 95)
+                  .padding(.leading, 7.1) // 왼쪽에만 16pt 여백
                 }
-              }
-              .frame(height: 95)
-              .background(Color.BR_00)
-              .padding(.leading, 7.1) // 왼쪽에만 16pt 여백
-              // 라벨 부분 (10분)
-              HStack() {
-                ForEach(Array(taskData.focusRatio.enumerated()), id: \.offset) { idx, ratio in
-                  Text((idx == 0 || (idx + 1) * 10 % 30 == 0) ? "\((idx + 1) * 10)분" : "")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .frame(width: 30, height: 17)
+
+                // 라벨 부분 (10분)
+                HStack(spacing: 16) {
+                  Text("10분")
+                    .font(.spoqaHanSansNeo(type: .regular, size: 12))
+                  HStack(spacing: 32.3) {
+                    ForEach(Array(taskData.focusRatio.enumerated()), id: \.offset) { idx, ratio in
+                      if idx >= 2 && (idx + 1) * 10 % 30 == 0 {
+                        HStack {
+                          Text("\((idx + 1) * 10)분")
+                            .font(.spoqaHanSansNeo(type: .regular, size: 12))
+                        }
+                        .frame(width: 35, height: 12)
+//                        .background(Color.BR_00)
+                      }
+                    }
+                  }
+//                  .background(.gray)
                 }
+                .padding(.leading, 2) // 10분 가운데 맞추기
               }
+              .padding(.top, 13) // 100과 맞추기 위한 윗 패딩
             }
+            .frame(height: 115)
           }
-          .frame(height: 115)
-          
+
           HStack {
-            Rectangle()
-              .fill(.blue)
-              .frame(width: 12, height: 12)
-            Text("집중시간")
-            
             Spacer()
+            HStack(spacing: 5){
+              Rectangle()
+                .fill(.BR_20)
+                .frame(width: 10, height: 10)
+                .cornerRadius(1.3)
+              Text("집중시간")
+                .font(.FontSystem.btn).bold()
+                .foregroundColor(Color.B_20)
+            }
             
-            Rectangle()
-              .fill(.gray.opacity(0.3))
-              .frame(width: 12, height: 12)
-            Text("공부시간")
+            Spacer().frame(width: 50 )
+            
+            HStack(spacing: 5){
+              Rectangle()
+                .fill(.BR_50)
+                .frame(width: 10, height: 10)
+                .cornerRadius(1.3)
+              Text("공부시간")
+                .font(.FontSystem.btn).bold()
+                .foregroundColor(Color.B_20)
+            }
+            Spacer()
           }
-          .font(.caption)
         }
-        .frame(height: 227)
-        .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(12)
-        .shadow(radius: 2)
+        .padding(20)
+        .background(Color.W_00)
+        .cornerRadius(16)
       }
     }
   }
