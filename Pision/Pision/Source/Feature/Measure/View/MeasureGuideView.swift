@@ -71,7 +71,7 @@ extension MeasureGuideView {
       
       HStack(spacing: 46) {
         VStack {
-          Image(viewModel.isGuidingAngle ? .iconTrue : .iconFalse)
+          Image(viewModel.isGuidingAngle ? .guideTrue : .guideFalse)
             .resizable()
             .frame(width: 60, height: 60)
           
@@ -83,7 +83,7 @@ extension MeasureGuideView {
         .foregroundStyle(viewModel.isGuidingAngle ? .su00 : .W_00)
         
         VStack {
-          Image(viewModel.isGuidingPose ? .iconTrue : .iconFalse)
+          Image(viewModel.isGuidingPose ? .guideTrue : .guideFalse)
             .resizable()
             .frame(width: 60, height: 60)
           

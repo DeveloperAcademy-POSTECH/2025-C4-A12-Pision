@@ -6,8 +6,8 @@
 //
 
 enum GuidingPoseCaptionItems: String, CaseIterable {
-  case startPose = "stratPose"
-  case stopPose = "stopPose"
+  case startPose = "guideP201"
+  case stopPose = "guideP202"
   
   var image: String {
     rawValue
