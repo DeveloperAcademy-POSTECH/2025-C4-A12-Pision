@@ -67,14 +67,14 @@ struct CustomTabBar: View {
             }) {
                 ZStack {
                     Circle()
-                        .fill(Color.blue)
+                    .foregroundStyle(.BR_00)
                         .frame(width: 64, height: 64)
                         .shadow(radius: 4)
                     Image(systemName: "clock.badge.checkmark")
                         .foregroundColor(.white)
                         .font(.system(size: 28))
                   // 중앙 버튼 텍스트
-                  Text("측정 시작")
+                  Text("측정")
                     .font(.system(size:7))
                       .foregroundColor(.white)
                       .offset(y: 22)

@@ -9,7 +9,11 @@ import SwiftUI
 
 // MARK: - Var
 struct HistoryRowView: View {
-
+  let task:TaskData
+  var avgFocus: Int {
+    guard task.durationTime > 0 else { return 0 }
+    return Int((Double(task.focusTime) / Double(task.durationTime)) * 100)
+  }
 }
 
 // MARK: - View
@@ -18,29 +22,32 @@ extension HistoryRowView {
     HStack{
         VStack(alignment: .leading){
           HStack{
-            Text("12:00 ~ 16:27 am")
+            Text("\(formatted(task.startTime))")
+              .font(.FontSystem.b1)
+              .foregroundStyle(.black)
+            Text("~")
+            Text("\(formatted(task.endTime))")
               .font(.FontSystem.b1)
               .foregroundStyle(.black)
             Spacer()
             Image(systemName: "chevron.right")
-              .foregroundStyle(.gray)
           }
           //Spacer()
           Text("")
-          HStack{
-            Text("3시간 20분")
+          HStack(alignment:.bottom){
+            Text(secondsToHourMinute(task.focusTime))
               .font(.FontSystem.h1)
               .foregroundStyle(.BR_00)
-            Text("4시간 47분")
+            Text(secondsToHourMinute(task.durationTime))
               .font(.FontSystem.b1)
               .foregroundStyle(.B_40)
             Spacer()
-            Text("90.6%")
+            Text("\(avgFocus)%")
               .font(.FontSystem.h2)
               .foregroundStyle(.black)
           }
-          CustomProgressBar(value: 0.75)
-          HStack{
+          CustomProgressBar(value: Double(avgFocus)/100.0)
+          HStack(){
             RoundedRectangle(cornerRadius: 2)
               .frame(width: 10, height: 10)
               .foregroundStyle(.BR_00)
@@ -84,10 +91,19 @@ struct CustomProgressBar: View {
 // MARK: - Func
 extension HistoryRowView{
   
+  func formatted(_ date: Date) -> String {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "HH:mm"
+    return formatter.string(from: date)
+  }
   
-  
+  func secondsToHourMinute(_ seconds: Int) -> String {
+    let hours = seconds / 3600
+    let minutes = (seconds % 3600) / 60
+    return "\(hours)시간 \(minutes)분"
+  }
 }
 
 #Preview {
-    HistoryRowView()
+  HistoryRowView(task: HistoryView.mock)
 }

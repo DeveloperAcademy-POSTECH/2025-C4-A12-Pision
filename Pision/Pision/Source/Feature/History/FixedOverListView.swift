@@ -9,8 +9,10 @@ import SwiftUI
 
 // MARK: - Var
 struct FixedOverListView: View {
-  @State private var selectedIndex: String = "주"
-  let options = ["주", "월", "년", "전체"]
+  let avgFocus: Int
+  let focusTime: Int
+  let totalDuration: Int
+  let sessionCount: Int
 }
 
 // MARK: - View
@@ -21,12 +23,12 @@ extension FixedOverListView {
         HStack{
           Text("당신의 평균 집중률")
             .font(.FontSystem.h3)
-            .foregroundStyle(.B_30)
+            .foregroundStyle(.B_20)
           Spacer()
         }.padding(.bottom, 2)
         HStack{
-          Text("73%")
-            .font(.FontSystem.h1)
+          Text("\(avgFocus)%")
+            .font(.FontSystem.h0)
             .foregroundStyle(.BR_00)
           Spacer()
         }
@@ -36,7 +38,7 @@ extension FixedOverListView {
           Text("집중 횟수")
             .font(.FontSystem.cap1)
             .foregroundStyle(.B_20)
-          Text("3")
+          Text("\(sessionCount)")
             .font(.FontSystem.h2)
             .foregroundStyle(.BR_00)
         }
@@ -46,7 +48,7 @@ extension FixedOverListView {
           Text("총 공부시간")
             .font(.FontSystem.cap1)
             .foregroundStyle(.B_20)
-          Text("9H 32")
+          Text(formatTime(seconds: totalDuration))
             .font(.FontSystem.h2)
             .foregroundStyle(.BR_00)
         }
@@ -56,7 +58,7 @@ extension FixedOverListView {
           Text("전체 집중시간")
             .font(.FontSystem.cap1)
             .foregroundStyle(.B_20)
-          Text("6h 40")
+          Text(formatTime(seconds: focusTime))
             .font(.FontSystem.h2)
             .foregroundStyle(.BR_00)
         }
@@ -71,10 +73,19 @@ extension FixedOverListView {
 
 // MARK: - Func
 extension FixedOverListView {
-  
+  func formatTime(seconds: Int) -> String {
+    let hours = seconds / 3600
+    let minutes = (seconds % 3600) / 60
+    return String(format: "%dh %02d", hours, minutes)
+  }
 }
 
 
 #Preview {
-  FixedOverListView()
+  FixedOverListView(
+    avgFocus: 73,
+    focusTime: 2100,
+    totalDuration: 3420,   // 57분
+    sessionCount: 3
+  )
 }
