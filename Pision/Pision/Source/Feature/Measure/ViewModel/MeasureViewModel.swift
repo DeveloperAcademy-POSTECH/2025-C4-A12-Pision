@@ -12,11 +12,19 @@ import SwiftUI
 import Foundation
 
 final class MeasureViewModel: ObservableObject {
-  // Published Var
+  // MARK: - Timer Var
   @Published private(set) var timerState: TimerState = .stopped
   @Published private(set) var secondsElapsed: Int = 0
-  @Published private(set) var currentFocusRatio: Float = 0.0
-  @Published private(set) var shouldDimScreen: Bool = false
+  private var timer: Timer?
+  
+  var timeString: String {
+    let hrs = secondsElapsed / 3600
+    let mins = (secondsElapsed % 3600) / 60
+    let secs = secondsElapsed % 60
+    return String(format: "%02d:%02d:%02d", hrs, mins, secs)
+  }
+  
+  // MARK: - Brightness Var
   @Published var isAutoBrightnessModeOn: Bool = false {
     didSet {
       if !isAutoBrightnessModeOn {
@@ -27,10 +35,34 @@ final class MeasureViewModel: ObservableObject {
     }
   }
   
-  // General Var
-  private var timer: Timer?
   private var brightnessTimer: DispatchWorkItem?
   
+  // MARK: - Guiding Var
+  @Published private(set) var isNext: Bool = false
+  @Published private(set) var isGuidingAngle: Bool = false
+  @Published private(set) var isGuidingPose: Bool = false
+  @Published private(set) var isGuidingComplete: Bool = false
+  @Published private(set) var isPresentedStartModal: Bool = false
+  @Published private(set) var showCountdown = false
+  private var guidingTimer: Timer?
+  private var guidingStartTime: Date?
+  
+  var guideCaptionString: String {
+    switch (isGuidingAngle, isGuidingPose) {
+    case (true, false):
+      return "어깨를 중앙에\n위치 시켜주세요"
+    case (false, true):
+      return "얼굴을 중앙에\n위치 시켜주세요"
+    case (true, true):
+      return "해당 자세를 3초 이상\n유지해주세요"
+    default:
+      return "카메라를 편하신 곳에\n거치 시켜주세요 "
+    }
+  }
+  
+  // MARK: - Measure Var
+  @Published private(set) var currentFocusRatio: Float = 0.0
+  @Published private(set) var shouldDimScreen: Bool = false
   private var coreScoreHistory: [CoreScoreModel] = []
   private var auxScoreHistory: [AuxScoreModel] = []
   private var coreScoreHistory10Minute: [AvgCoreScoreModel] = []
@@ -38,14 +70,8 @@ final class MeasureViewModel: ObservableObject {
   private var taskData: TaskDataModel?
   private var focusTime: Int = 0
   private var focusRatios: [Float] = []
-  
-  var timeString: String {
-    let hrs = secondsElapsed / 3600
-    let mins = (secondsElapsed % 3600) / 60
-    let secs = secondsElapsed % 60
-    return String(format: "%02d:%02d:%02d", hrs, mins, secs)
-  }
-  
+
+  // MARK: - General
   // Manager
   private let cameraManager: CameraManager
   private let visionManager = VisionManager()
@@ -57,6 +83,7 @@ final class MeasureViewModel: ObservableObject {
     cameraManager.session
   }
   
+  // init
   init() {
     cameraManager = CameraManager(visionManager: visionManager)
     cameraManager.requestAndCheckPermissions()
@@ -67,6 +94,13 @@ final class MeasureViewModel: ObservableObject {
     }
   }
   
+  func debugPrintAllSavedData(context: ModelContext) {
+    swiftDataManager.fetchAllTaskData(context: context)
+  }
+}
+
+// MARK: - Camera Func
+extension MeasureViewModel {
   func cameraStart() {
     cameraManager.startSession()
   }
@@ -74,20 +108,10 @@ final class MeasureViewModel: ObservableObject {
   func cameraStop() {
     cameraManager.stopSession()
   }
-  
-  func resetAutoDimTimer() {
-    brightnessTimer?.cancel()
-    
-    let task = DispatchWorkItem { [weak self] in
-      self?.shouldDimScreen = true
-    }
-    
-    brightnessTimer = task
-    DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: task)
-    
-    shouldDimScreen = false
-  }
-  
+}
+
+// MARK: - Timer
+extension MeasureViewModel {
   func timerStart() {
     secondsElapsed = 0
     focusTime = 0
@@ -122,13 +146,6 @@ final class MeasureViewModel: ObservableObject {
     saveTaskDataAndSaveToSwiftData(context: context, completion: completion)
   }
   
-  func debugPrintAllSavedData(context: ModelContext) {
-    swiftDataManager.fetchAllTaskData(context: context)
-  }
-}
-
-// MARK: - Private Func
-extension MeasureViewModel {
   private func startTimerLoop() {
     timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
       guard let self = self else { return }
@@ -145,6 +162,22 @@ extension MeasureViewModel {
       }
     }
   }
+}
+
+// MARK: - Brightness
+extension MeasureViewModel {
+  func resetAutoDimTimer() {
+    brightnessTimer?.cancel()
+    
+    let task = DispatchWorkItem { [weak self] in
+      self?.shouldDimScreen = true
+    }
+    
+    brightnessTimer = task
+    DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: task)
+    
+    shouldDimScreen = false
+  }
   
   private func startAutoBrightnessMode() {
     brightnessTimer?.cancel()
@@ -160,7 +193,73 @@ extension MeasureViewModel {
     brightnessTimer = nil
     shouldDimScreen = false
   }
+}
+
+// MARK: - Guiding
+extension MeasureViewModel {
+  func guidingStart(screenWidth: CGFloat) {
+    cameraManager.startMeasuring()
+    checkYaw(screenWidth: screenWidth)
+    
+    Publishers.CombineLatest($isGuidingAngle, $isGuidingPose)
+      .map { $0 && $1 }
+      .removeDuplicates()
+      .receive(on: DispatchQueue.main)
+      .assign(to: &$isGuidingComplete)
+  }
   
+  func guidingFinish() {
+    isPresentedStartModal = false
+    showCountdown = true
+    //isNext = true
+  }
+  
+  func checkGuidingStatus() {
+    if isGuidingAngle && isGuidingPose {
+      if guidingTimer == nil {
+        guidingStartTime = Date()
+        guidingTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+          guard let self = self, let start = self.guidingStartTime else { return }
+          let elapsed = Date().timeIntervalSince(start)
+          if elapsed >= 3.0 {
+            self.guidingTimer?.invalidate()
+            self.guidingTimer = nil
+            self.isPresentedStartModal = true
+          }
+        }
+      }
+    } else {
+      guidingTimer?.invalidate()
+      guidingTimer = nil
+      guidingStartTime = nil
+    }
+  }
+  
+  func countDownFinish() {
+    showCountdown = false
+    isNext = true
+  }
+  
+  private func checkYaw(screenWidth: CGFloat) {
+    visionManager.$latestYaw
+      .receive(on: DispatchQueue.main)
+      .map { $0 <= 0.7853982 }
+      .assign(to: &$isGuidingAngle)
+    
+    visionManager.$shoulderPoints
+      .receive(on: DispatchQueue.main)
+      .map { points -> Bool in
+        guard let points else { return false }
+        let leftX = points.left.x * screenWidth
+        let rightX = points.right.x * screenWidth
+        return leftX >= 0 && rightX <= screenWidth
+      }
+      .assign(to: &$isGuidingPose)
+  }
+}
+
+// MARK: - Measure
+extension MeasureViewModel {
   private func calculateScores() {
     let core = scoreManager.calculateCore(
       from: visionManager.ears,
