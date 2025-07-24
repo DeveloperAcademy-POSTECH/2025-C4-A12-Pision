@@ -8,7 +8,9 @@
 import SwiftUI
 
 // MARK: - Var
-struct GuidingCameraView: View { }
+struct GuidingCameraView: View {
+  @State private var isNavigate: Bool = false
+}
 
 // MARK: - View
 extension GuidingCameraView {
@@ -32,7 +34,7 @@ extension GuidingCameraView {
         
         GuidingButtonView(
           title: "다 음",
-          action: { print("Tapped Next") }
+          action: { processNavigation() }
         )
         .padding(.bottom, 32)
         .padding(.horizontal, 21)
@@ -42,6 +44,16 @@ extension GuidingCameraView {
       .background(.W_00)
       .clipShape(RoundedRectangle(cornerRadius: 15.27))
     }
+    .navigationBarBackButtonHidden()
+    .navigationDestination(isPresented: $isNavigate) {
+      GuidingPoseView()
+    }
+  }
+}
+
+extension GuidingCameraView {
+  private func processNavigation() {
+    isNavigate = true
   }
 }
 

@@ -21,7 +21,7 @@ extension AnalyzeView {
         .ignoresSafeArea()
       
       VStack {
-        CustomNavigationBar(title: "집중 분석")
+        CustomNavigationbar(title: "자세 맞추기", titleColor: .W_00, buttonColor: .W_00)
         ScrollView {
           if let taskData = tasks.first { // 저장된 tasks 중에서 맨 첫번째 시간의 task를 가져옴.
             AnalyzeBodyView(taskData: taskData)

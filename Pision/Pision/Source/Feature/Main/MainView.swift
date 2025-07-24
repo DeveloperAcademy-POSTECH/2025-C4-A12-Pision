@@ -22,7 +22,7 @@ extension MainView {
         
         VStack {
           NavigationLink {
-            MeasureView()
+            GuidingCameraView()
           } label: {
             Text("시작")
               .foregroundStyle(.white)
