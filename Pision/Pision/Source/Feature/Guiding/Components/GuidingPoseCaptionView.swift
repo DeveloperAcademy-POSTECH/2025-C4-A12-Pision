@@ -24,8 +24,10 @@ struct GuidingPoseCaptionView: View {
     HStack(spacing: 0) {
       Text(item.boldCaption)
         .font(.spoqaHanSansNeo(type: .bold, size: 13))
+        .foregroundStyle(.B_00)
       Text(item.regularCaption)
         .font(.spoqaHanSansNeo(type: .regular, size: 13))
+        .foregroundStyle(.B_00)
     }
   }
 }
