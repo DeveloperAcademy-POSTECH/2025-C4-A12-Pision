@@ -41,7 +41,7 @@ extension AnalyzeView {
     let taskData: TaskData
     
     var body: some View {
-      VStack(spacing: 24) {
+      VStack(spacing: 8) {
         FocusTimeOverviewView(taskData: taskData)
         HourlyFocusChartView(taskData: taskData)
         AnalyzeDetailView(taskData: taskData)
@@ -156,7 +156,7 @@ extension AnalyzeView {
           .font(.FontSystem.h2)
           .foregroundColor(.B_00)
         
-        VStack(alignment: .leading, spacing: 15) {
+        VStack(alignment: .leading, spacing: 20) {
           Text("시간별 집중률")
             .font(.FontSystem.h4)
           // 왼쪽 지표 + 스크롤 화면
@@ -251,7 +251,7 @@ extension AnalyzeView {
 
           HStack {
             Spacer()
-            HStack(spacing: 5){
+            HStack(spacing: 5) {
               Rectangle()
                 .fill(.BR_20)
                 .frame(width: 10, height: 10)
@@ -263,7 +263,7 @@ extension AnalyzeView {
             
             Spacer().frame(width: 50 )
             
-            HStack(spacing: 5){
+            HStack(spacing: 5) {
               Rectangle()
                 .fill(.BR_50)
                 .frame(width: 10, height: 10)
@@ -279,6 +279,7 @@ extension AnalyzeView {
         .background(Color.W_00)
         .cornerRadius(16)
       }
+      .padding(.top, 13)
     }
   }
 }
@@ -288,7 +289,7 @@ extension AnalyzeView {
     let taskData: TaskData
     
     var body: some View {
-      VStack(spacing: 16) {
+      VStack(spacing: 8) {
         CoreScoreSection(taskData: taskData)
         AuxScoreSection(taskData: taskData)
       }
@@ -332,35 +333,29 @@ extension AnalyzeView {
         }) {
           HStack {
             VStack(alignment: .leading, spacing: 4) {
-              HStack {
+              HStack(spacing: 8) {
                 Text("CoreScore")
-                  .font(.headline)
-                  .foregroundColor(.primary)
-                Image(systemName: "info.circle")
-                  .foregroundColor(.secondary)
-                  .font(.caption)
+                  .font(.FontSystem.h4)
+                Image("info")
               }
               Text("실시간 정보로 집중도를 파악해요")
-                .font(.caption)
-                .foregroundColor(.secondary)
+                .font(.FontSystem.btn)
+                .foregroundColor(Color.B_20)
             }
             
             Spacer()
             
-            VStack(alignment: .trailing) {
+            HStack(spacing: 16) {
               Text("\(String(format: "%.1f", taskData.averageCoreScore()))%")
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(.blue)
-              
-              Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                .foregroundColor(.secondary)
+                .font(.spoqaHanSansNeo(type: .bold, size: 28))
+                .foregroundColor(Color.BR_00)
+
+              Image(isExpanded ? "dropUp" : "dropDown")
             }
           }
-          .padding()
-          .background(Color(.systemBackground))
-          .cornerRadius(12)
-          .shadow(radius: 2)
+          .padding(20)
+          .background(Color.W_00)
+          .cornerRadius(16)
         }
         .buttonStyle(PlainButtonStyle())
         
@@ -436,33 +431,27 @@ extension AnalyzeView {
             VStack(alignment: .leading, spacing: 4) {
               HStack {
                 Text("AuxScore")
-                  .font(.headline)
-                  .foregroundColor(.primary)
-                Image(systemName: "info.circle")
-                  .foregroundColor(.secondary)
-                  .font(.caption)
+                  .font(.FontSystem.h4)
+                Image("info")
               }
               Text("세부적인 정보로 집중도를 파악해요")
-                .font(.caption)
-                .foregroundColor(.secondary)
+                .font(.FontSystem.btn)
+                .foregroundColor(Color.B_20)
             }
             
             Spacer()
             
-            VStack(alignment: .trailing) {
+            HStack(spacing: 16) {
               Text("\(String(format: "%.1f", taskData.averageAuxScore()))%")
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(.blue)
+                .font(.spoqaHanSansNeo(type: .bold, size: 28))
+                .foregroundColor(Color.BR_00)
               
-              Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                .foregroundColor(.secondary)
+              Image(isExpanded ? "dropUp" : "dropDown")
             }
           }
-          .padding()
-          .background(Color(.systemBackground))
-          .cornerRadius(12)
-          .shadow(radius: 2)
+          .padding(20)
+          .background(Color.W_00)
+          .cornerRadius(16)
         }
         .buttonStyle(PlainButtonStyle())
         
