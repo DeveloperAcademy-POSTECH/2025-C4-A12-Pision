@@ -41,3 +41,22 @@ class TaskData {
     self.avgAuxDatas = avgAuxDatas
   }
 }
+
+// MARK: - avgCoreDatas, avgAuxDatas들의 평균을 내는 함수
+extension TaskData {
+  func averageAuxScore() -> Double {
+    guard !avgAuxDatas.isEmpty else {
+      return 0.0
+    }
+    let total = avgAuxDatas.map { Double($0.avgAuxScore) }.reduce(0, +)
+    return total / Double(avgAuxDatas.count)
+  }
+
+  func averageCoreScore() -> Double {
+    guard !avgCoreDatas.isEmpty else {
+      return 0.0
+    }
+    let total = avgCoreDatas.map { Double($0.avgCoreScore) }.reduce(0, +)
+    return total / Double(avgCoreDatas.count)
+  }
+}
