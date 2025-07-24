@@ -47,6 +47,7 @@ extension AnalyzeView {
               HStack {
                 Text("AuxScore")
                   .font(.FontSystem.h4)
+                  .foregroundColor(Color.B_00)
                 Image("info")
               }
               Text("세부적인 정보로 집중도를 파악해요")

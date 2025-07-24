@@ -40,6 +40,7 @@ struct CoreScoreView: View {
         HStack(spacing: 8) {
           Text("CoreScore")
             .font(.FontSystem.h4)
+            .foregroundColor(Color.B_00)
           Image("info")
         }
         Text("실시간 정보로 집중도를 파악해요")

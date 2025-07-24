@@ -30,6 +30,7 @@ extension AnalyzeView {
         HStack {
           Text("\(taskData.startTime.formatted(date: .omitted, time: .shortened)) ~ \(taskData.endTime.formatted(date: .omitted, time: .shortened))")
             .font(.FontSystem.b1)
+            .foregroundColor(Color.B_00)
           Spacer()
         }
 
