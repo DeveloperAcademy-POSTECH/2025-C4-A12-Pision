@@ -71,6 +71,7 @@ extension MeasureView {
         }
       }
     }
+    .navigationBarBackButtonHidden()
     .onAppear {
       viewModel.cameraStart()
       viewModel.debugPrintAllSavedData(context: context)

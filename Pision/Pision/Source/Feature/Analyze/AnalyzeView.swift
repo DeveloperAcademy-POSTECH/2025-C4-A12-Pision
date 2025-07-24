@@ -15,21 +15,31 @@ struct AnalyzeView: View {
 
 extension AnalyzeView {
   var body: some View {
-    ScrollView {
-      if let taskData = tasks.first { // 저장된 tasks 중에서 맨 첫번째 시간의 task를 가져옴.
-        AnalyzeBodyView(taskData: taskData)
-      } else {
-        Text("데이터가 없습니다.")
-          .foregroundColor(.gray)
+    ZStack {
+      Image(.background)
+        .resizable()
+        .ignoresSafeArea()
+      
+      VStack {
+        CustomNavigationBar(title: "집중 분석")
+        ScrollView {
+          if let taskData = tasks.first { // 저장된 tasks 중에서 맨 첫번째 시간의 task를 가져옴.
+            AnalyzeBodyView(taskData: taskData)
+          } else {
+            Text("데이터가 없습니다.")
+              .foregroundColor(.gray)
+          }
+        }
       }
     }
+    .navigationBarBackButtonHidden()
   }
 }
 
 extension AnalyzeView {
   struct AnalyzeBodyView: View {
     let taskData: TaskData
-
+    
     var body: some View {
       VStack(spacing: 24) {
         FocusTimeOverviewView(taskData: taskData) // 집중 개요 뷰
@@ -45,7 +55,7 @@ extension AnalyzeView {
 extension AnalyzeView {
   struct FocusTimeOverviewView: View {
     let taskData: TaskData
-
+    
     var body: some View {
       VStack(alignment: .leading, spacing: 12) {
         Text("시작 시간 \(taskData.startTime.formatted(date: .omitted, time: .shortened))")
@@ -64,7 +74,7 @@ extension AnalyzeView {
             .frame(height: 12)
             .background(Color(.systemGray5))
             .clipShape(Capsule())
-
+          
           HStack {
             Text("0%")
               .font(.caption)
@@ -131,34 +141,34 @@ extension AnalyzeView {
 extension AnalyzeView {
   struct CoreScoreSection: View {
     let taskData: TaskData
-
+    
     struct ScoreDetailEntry: Identifiable {
       let id = UUID()
       let index: Int
       let value: Double
       let category: String
     }
-
+    
     var coreScoreEntries: [ScoreDetailEntry] {
       guard !taskData.avgCoreDatas.isEmpty else { return [] }
       var entries: [ScoreDetailEntry] = []
-
+      
       for (idx, score) in taskData.avgCoreDatas.enumerated() {
         entries.append(ScoreDetailEntry(index: idx + 1, value: Double(score.avgYawScore) * 2.5, category: "avgYawScore"))
         entries.append(ScoreDetailEntry(index: idx + 1, value: Double(score.avgEyeOpenScore) * 4.0, category: "avgEyeOpenScore"))
         entries.append(ScoreDetailEntry(index: idx + 1, value: Double(score.avgEyeClosedScore) * 5.0, category: "avgEyeClosedScore"))
         entries.append(ScoreDetailEntry(index: idx + 1, value: Double(score.avgBlinkFrequency) * (100.0 / 15.0), category: "avgBlinkFrequency"))
       }
-
+      
       return entries
     }
-
+    
     var body: some View {
       VStack(alignment: .leading, spacing: 8) {
         Text("Core Score")
           .font(.headline)
         Text("평균 \(Int(taskData.averageCoreScore())) 점")
-
+        
         ScrollView(.horizontal) {
           Chart {
             ForEach(coreScoreEntries) { entry in
@@ -168,7 +178,7 @@ extension AnalyzeView {
               )
               .interpolationMethod(.catmullRom)
               .foregroundStyle(by: .value("Category", entry.category))
-
+              
               PointMark(
                 x: .value("Index", entry.index),
                 y: .value("Score", entry.value)
@@ -190,33 +200,33 @@ extension AnalyzeView {
 extension AnalyzeView {
   struct AuxScoreSection: View {
     let taskData: TaskData
-
+    
     struct ScoreDetailEntry: Identifiable {
       let id = UUID()
       let index: Int
       let value: Double
       let category: String
     }
-
+    
     var auxScoreEntries: [ScoreDetailEntry] {
       guard !taskData.avgAuxDatas.isEmpty else { return [] }
       var entries: [ScoreDetailEntry] = []
-
+      
       for (idx, score) in taskData.avgAuxDatas.enumerated() {
         entries.append(ScoreDetailEntry(index: idx + 1, value: Double(score.avgBlinkScore) * 4.0, category: "avgBlinkScore"))
         entries.append(ScoreDetailEntry(index: idx + 1, value: Double(score.avgYawStabilityScore) * 4.0, category: "avgYawStabilityScore"))
         entries.append(ScoreDetailEntry(index: idx + 1, value: Double(score.avgMlSnoozeScore) * 2.0, category: "avgMlSnoozeScore"))
       }
-
+      
       return entries
     }
-
+    
     var body: some View {
       VStack(alignment: .leading, spacing: 8) {
         Text("Aux Score")
           .font(.headline)
         Text("평균 \(Int(taskData.averageAuxScore())) 점")
-
+        
         ScrollView(.horizontal) {
           Chart {
             ForEach(auxScoreEntries) { entry in
@@ -226,7 +236,7 @@ extension AnalyzeView {
               )
               .interpolationMethod(.catmullRom)
               .foregroundStyle(by: .value("Category", entry.category))
-
+              
               PointMark(
                 x: .value("Index", entry.index),
                 y: .value("Score", entry.value)
@@ -259,11 +269,11 @@ extension AnalyzeView {
     for: TaskData.self,
     configurations: ModelConfiguration(isStoredInMemoryOnly: true)
   )
-
+  
   // Mock 데이터 추가
   let context = container.mainContext
   context.insert(TaskData.mock)
-
+  
   return AnalyzeView()
     .modelContainer(container)
 }
