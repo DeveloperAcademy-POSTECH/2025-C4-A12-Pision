@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Charts
+import SwiftData
 
 // MARK: - AuxScore 드롭다운 뷰
 extension AnalyzeView {
@@ -102,4 +103,19 @@ extension AnalyzeView {
       }
     }
   }
+}
+
+#Preview {
+  let container = try! ModelContainer(
+    for: TaskData.self,
+    configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+  )
+  
+  let context = container.mainContext
+  context.insert(TaskData.mock)
+  
+  return AnalyzeView.AuxScoreView(taskData: TaskData.mock)
+    .modelContainer(container)
+    .padding()
+    .background(Color.gray.opacity(0.1)) // 보기 편하게 배경색
 }
