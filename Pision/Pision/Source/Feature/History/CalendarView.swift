@@ -17,27 +17,26 @@ struct CalendarView: View {
   }
   
   @Binding var selectedDate: Date
-  //@State private var selectedDate: Date = Date()
-  @Binding var selectedMode: ViewMode  // ✅ 외부에서 바인딩으로 받기
-
+  @Binding var selectedMode: ViewMode  
+  
   private let itemWidth: CGFloat = 40
   private let itemHeight: CGFloat = 60
   private let visibleCount: Int = 7
   private let spacingCount = 6
-
+  
   @State private var scrollOffset: CGFloat = 0
   @State private var draggingOffset: CGFloat = 0
   @State private var selectedIndex: Int = 0
-
+  
   @State private var currentScrolledMonth: Date = Date()
   
   
   @State private var monthOffsets: [Int] = [0]
   @State private var baseDate: Date = Date()
   @State private var isAppending: Bool = false
-
+  
   private let dates: [DateItem]
-
+  
   init(selectedDate:Binding<Date>, selectedMode: Binding<ViewMode>) {
     self._selectedDate = selectedDate
     self._selectedMode = selectedMode
@@ -46,7 +45,7 @@ struct CalendarView: View {
     let formatter = DateFormatter()
     formatter.locale = Locale(identifier: "ko_KR")
     formatter.dateFormat = "E"
-
+    
     for offset in -100...100 {
       let date = calendar.date(byAdding: .day, value: offset, to: Date())!
       temp.append(DateItem(
@@ -56,64 +55,63 @@ struct CalendarView: View {
       ))
     }
     dates = temp
-    
   }
 }
 
 // MARK: - View
 extension CalendarView {
   var body: some View {
-      ZStack {
-        RoundedRectangle(cornerRadius: 16)
-          .fill(Color.white)
-        VStack{
-          HStack{
-            Text(monthYearString(from: currentScrolledMonth))
-              .font(.FontSystem.h2)
-              .padding(.leading, 10)
-              .padding(.top, 10)
-            Spacer()
-            modePicker()
-          }
-          .padding(.horizontal)
-          .padding(.top)
-
-          GeometryReader { geo in
-            Group {
-              if selectedMode == .daily {
-                dailyScrollView(geo: geo)
-                  .frame(height: 40) 
-              } else {
-                monthlyGridView()
-                  .frame(height: 320)
-              }
+    ZStack {
+      RoundedRectangle(cornerRadius: 16)
+        .fill(Color.white)
+      VStack{
+        HStack{
+          Text(monthYearString(from: currentScrolledMonth))
+            .font(.FontSystem.h2)
+            .padding(.leading, 10)
+            .padding(.top, 10)
+          Spacer()
+          modePicker()
+        }
+        .padding(.horizontal)
+        .padding(.top)
+        
+        GeometryReader { geo in
+          Group {
+            if selectedMode == .daily {
+              dailyScrollView(geo: geo)
+                .frame(height: 40)
+            } else {
+              monthlyGridView()
+                .frame(height: 320)
             }
           }
-          .padding(.horizontal)
         }
+        .padding(.horizontal)
       }
-      .padding(.horizontal)
+    }
+    .padding(.horizontal)
   }
 }
 
 // MARK: - Func
 extension CalendarView {
-
+  
   func currentMonthString() -> String {
     let formatter = DateFormatter()
     formatter.locale = Locale(identifier: "en_US")
     formatter.dateFormat = "MMM"
     return formatter.string(from: Date())
   }
-
+  
   func spacing(in width: CGFloat) -> CGFloat {
     (width - CGFloat(visibleCount) * itemWidth) / CGFloat(spacingCount)
   }
-
+  
   func totalContentWidth(in width: CGFloat) -> CGFloat {
     CGFloat(visibleCount) * itemWidth + CGFloat(spacingCount) * spacing(in: width)
   }
-
+  
   func makeFormatter() -> DateFormatter {
     let formatter = DateFormatter()
     formatter.locale = Locale(identifier: "en_US")
@@ -127,7 +125,7 @@ extension CalendarView {
     formatter.dateFormat = "MMM yyyy"
     return formatter.string(from: date)
   }
-
+  
   enum ViewMode: String {
     case daily = "주"
     case monthly = "월"
@@ -140,7 +138,7 @@ extension CalendarView {
       value.merge(nextValue(), uniquingKeysWith: { $1 })
     }
   }
-
+  
   @ViewBuilder
   func modePicker() -> some View {
     Menu {
@@ -170,27 +168,27 @@ extension CalendarView {
       .font(.subheadline)
     }
   }
-
+  
   @ViewBuilder
   func dailyScrollView(geo: GeometryProxy) -> some View {
     let center = geo.size.width / 2
-
+    
     ZStack {
       RoundedRectangle(cornerRadius: 9)
         .fill(.BR_00)
         .frame(width: itemWidth, height: 50)
         .position(x: center, y: itemHeight / 2)
         .zIndex(1)
-
+      
       ScrollView(.horizontal, showsIndicators: false) {
         HStack(spacing: 0) {
           Spacer(minLength: 0)
-
+          
           ForEach(dates.indices, id:\.self) { i in
             let offset = CGFloat(i) * (itemWidth + spacing(in: geo.size.width))
             let itemCenter = offset + draggingOffset - scrollOffset + itemWidth / 2
             let isSelected = abs(itemCenter - center) < (itemWidth + spacing(in: geo.size.width)) / 2
-
+            
             VStack(spacing: 4) {
               Text(dates[i].weekday)
                 .font(.FontSystem.btn)
@@ -204,24 +202,24 @@ extension CalendarView {
             .onTapGesture {
               withAnimation {
                 selectedDate = Calendar.current.date(byAdding: .hour, value: 9, to: Calendar.current.startOfDay(for: dates[i].date))!
-
+                
                 selectedIndex = i
-
-
+                
+                
                 scrollOffset = CGFloat(i) * (itemWidth + spacing(in: geo.size.width)) - center + itemWidth / 2
                 
                 
                 currentScrolledMonth = Calendar.current.date(
-                   from: Calendar.current.dateComponents([.year, .month], from: selectedDate)
-                 )!
+                  from: Calendar.current.dateComponents([.year, .month], from: selectedDate)
+                )!
               }
             }
-
+            
             if i != dates.count - 1 {
               Spacer(minLength: spacing(in: geo.size.width))
             }
           }
-
+          
           Spacer(minLength: 0)
         }
         .padding(.horizontal, (geo.size.width - totalContentWidth(in: geo.size.width)) / 2)
@@ -237,7 +235,7 @@ extension CalendarView {
               let predictedOffset = scrollOffset - value.predictedEndTranslation.width
               let rawIndex = (predictedOffset + center - itemWidth / 2) / totalItemWidth
               let newIndex = max(0, min(dates.count - 1, Int(round(rawIndex))))
-
+              
               withAnimation(.easeOut(duration: 0.3)) {
                 selectedIndex = newIndex
                 scrollOffset = CGFloat(newIndex) * totalItemWidth - center + itemWidth / 2
@@ -263,14 +261,14 @@ extension CalendarView {
       }
     }
   }
-
+  
   @ViewBuilder
   func monthlyGridView() -> some View {
     GeometryReader { geo in
       let spacingValue = spacing(in: geo.size.width)
       let columns = Array(repeating: GridItem(.fixed(itemWidth), spacing: spacingValue), count: 7)
       let calendar = Calendar.current
-
+      
       ScrollViewReader { scrollProxy in
         ScrollView {
           LazyVStack(spacing: 32) {
@@ -278,20 +276,17 @@ extension CalendarView {
               let refDate = calendar.date(byAdding: .month, value: offset, to: baseDate) ?? baseDate
               let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: refDate))!
               let formatter = makeFormatter()
-
-              // 👉 날짜 수 계산
+              
               let range = calendar.range(of: .day, in: .month, for: startOfMonth)!
               let numberOfDaysInMonth = range.count
-
-              // 👉 앞쪽 공백 수 계산 (월요일 기준)
+              
               let firstWeekday = calendar.component(.weekday, from: startOfMonth)
               let leadingEmpty = (firstWeekday + 5) % 7
-
-              // 👉 필요한 줄 수만큼만 날짜 생성
+              
               let totalItems = numberOfDaysInMonth + leadingEmpty
               let rowCount = Int(ceil(Double(totalItems) / 7.0))
               let count = rowCount * 7
-
+              
               let allDates: [DateItem] = (0..<count).compactMap { i in
                 guard let date = calendar.date(byAdding: .day, value: i - leadingEmpty, to: startOfMonth) else { return nil }
                 return DateItem(
@@ -300,7 +295,7 @@ extension CalendarView {
                   day: calendar.component(.day, from: date)
                 )
               }
-
+              
               VStack(spacing: 12) {
                 HStack(spacing: spacingValue) {
                   ForEach(["월", "화", "수", "목", "금", "토", "일"], id: \.self) { day in
@@ -310,13 +305,13 @@ extension CalendarView {
                       .frame(width: itemWidth)
                   }
                 }
-
+                
                 LazyVGrid(columns: columns, spacing: 5) {
                   ForEach(allDates) { item in
                     let isSelected = Calendar.current.isDate(item.date, inSameDayAs: selectedDate)
                     let isToday = Calendar.current.isDateInToday(item.date)
                     let isCurrentMonth = calendar.component(.month, from: item.date) == calendar.component(.month, from: refDate)
-
+                    
                     Text("\(item.day)")
                       .font(.FontSystem.btn)
                       .bold()
@@ -378,7 +373,7 @@ extension CalendarView {
               )
             }
             .animation(nil, value: monthOffsets)
-
+            
           }
           .padding(.top, 8)
         }
@@ -386,7 +381,6 @@ extension CalendarView {
       }
     }
   }
-  
 }
 
 #Preview {
