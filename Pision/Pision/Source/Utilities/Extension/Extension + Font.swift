@@ -37,7 +37,7 @@ extension Font {
     static let h4 = Font.spoqaHanSansNeo(type: .bold, size: 16)
     static let b1 = Font.spoqaHanSansNeo(type: .medium, size: 14)
     static let b2 = Font.spoqaHanSansNeo(type: .bold, size: 14)
-    static let btn = Font.spoqaHanSansNeo(type: .medium, size: 12)
+    static let btn = Font.spoqaHanSansNeo(type: .regular, size: 12)
     static let cap1 = Font.spoqaHanSansNeo(type: .medium, size: 12)
     static let cap2 = Font.spoqaHanSansNeo(type: .regular, size: 12)
   }
