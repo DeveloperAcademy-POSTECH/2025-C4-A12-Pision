@@ -85,7 +85,7 @@ extension FixedOverListView {
   FixedOverListView(
     avgFocus: 73,
     focusTime: 2100,
-    totalDuration: 3420,   // 57분
+    totalDuration: 3420,   
     sessionCount: 3
   )
 }

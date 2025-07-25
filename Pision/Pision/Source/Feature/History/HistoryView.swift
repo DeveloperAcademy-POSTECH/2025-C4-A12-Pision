@@ -14,7 +14,6 @@ struct HistoryView: View {
   
   @State var selectedDate: Date = Date()
   @State var calendarMode: CalendarView.ViewMode = .daily
-
   
   var filteredTasks: [TaskData] {
     let startOfDay = Calendar.current.startOfDay(for: selectedDate)
@@ -32,7 +31,6 @@ struct HistoryView: View {
     let avgFocus = Int(Double(totalFocus) / Double(totalDuration) * 100)
     return (avgFocus, totalFocus,  totalDuration, sessionCount)
   }
-
 }
 
 
@@ -83,16 +81,12 @@ extension HistoryView {
                 .padding(.top)
               Spacer()
             }
-//            ForEach(0..<20) { _ in
-//              HistoryRowView()
-//            }
             ForEach(filteredTasks) { task in
               HistoryRowView(task: task)
             }
           }
         }
-        .onChange(of:selectedDate){
-          newValue in
+        .onChange(of:selectedDate) { newValue in
           print("선택된 날짜: \(newValue)")
         }
       }
@@ -104,9 +98,6 @@ extension HistoryView {
 extension HistoryView {
   
 }
-
-
-import Foundation
 
 extension HistoryView {
   static var mock: TaskData {
