@@ -53,12 +53,23 @@ extension AnalyzeView {
 
     /// 바 차트와 x축 라벨 포함
     private var focusChartWithLabels: some View {
-      ScrollView(.horizontal, showsIndicators: false) {
-        VStack(alignment: .leading, spacing: 2) {
-          chartWithGrid
-          xAxisLabels
+      let dataCount = taskData.focusRatio.count
+      let shouldScroll = dataCount > 12
+      
+      let chartContent = VStack(alignment: .leading, spacing: 2) {
+        chartWithGrid
+        xAxisLabels
+      }
+      .padding(.top, 13)
+      
+      return Group {
+        if shouldScroll {
+          ScrollView(.horizontal, showsIndicators: false) {
+            chartContent
+          }
+        } else {
+          chartContent
         }
-        .padding(.top, 13)
       }
       .frame(height: 115)
     }
