@@ -57,7 +57,7 @@ extension HistoryRowView {
             Spacer()
             RoundedRectangle(cornerRadius: 2)
               .frame(width: 10, height: 10)
-              .foregroundStyle(.gray)
+              .foregroundStyle(.BR_50)
             Text("전체시간")
               .font(.FontSystem.btn)
               .foregroundStyle(.B_40)
@@ -78,7 +78,7 @@ struct CustomProgressBar: View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
                 Capsule()
-                .foregroundStyle(.gray)
+                .foregroundStyle(.BR_50)
                     .frame(height: 10) // <- 원하는 두께
                 Capsule()
                 .foregroundStyle(.BR_00)
