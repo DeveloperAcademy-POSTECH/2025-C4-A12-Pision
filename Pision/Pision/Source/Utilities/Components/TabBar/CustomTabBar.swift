@@ -26,7 +26,7 @@ struct CustomTabBar: View {
       .padding(.bottom, 16)
       
       NavigationLink {
-        MeasureView()
+        GuidingCameraView()
       } label: {
         ZStack {
           Circle()
