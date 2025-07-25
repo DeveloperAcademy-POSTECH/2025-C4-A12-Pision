@@ -52,25 +52,13 @@ extension MeasureRecordView {
         
         Spacer()
         
-        VStack {
-          Button {
-            viewModel.timerStart()
-            updateBottomButtonVisibility()
-          } label: {
-            Image(systemName: "play.fill")
-              .foregroundStyle(.white)
-              .frame(width: 70, height: 70)
-              .background(.blue)
-              .clipShape(.circle)
-          }
-          .buttonStyle(.plain)
-          
-          MeasureSheetView(
-            viewModel: viewModel,
-            context: context
-          )
-          .frame(maxWidth: .infinity, maxHeight: 196)
-        }
+        MeasureSheetView(
+          viewModel: viewModel,
+          context: context
+        )
+        .frame(height: 171)
+        .padding(.horizontal, 26)
+        .padding(.bottom, 24)
       }
     }
     .navigationBarBackButtonHidden()
@@ -83,6 +71,7 @@ extension MeasureRecordView {
     })
     .onAppear {
       viewModel.cameraStart()
+      viewModel.timerStart()
     }
     .onDisappear {
       viewModel.cameraStop()

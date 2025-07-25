@@ -30,41 +30,42 @@ struct MeasureSheetView: View {
 extension MeasureSheetView {
   var body: some View {
     ZStack {
-      Color.white
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+      Color.W_10.opacity(0.9)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
         .ignoresSafeArea()
       
       VStack(alignment: .center) {
         Text("학습시간")
-          .foregroundStyle(.black)
+          .font(.FontSystem.h3)
+          .foregroundStyle(.B_10)
         
         infoView
         
-        Text("\(viewModel.currentFocusRatio)")
-          .foregroundStyle(.white)
-          .frame(width: 109, height: 40)
-          .background(.gray)
+        Text("집중도 \(Int(viewModel.currentFocusRatio))%")
+          .font(.FontSystem.h4)
+          .foregroundStyle(.W_00)
+          .frame(width: 129, height: 40)
+          .background(.B_20)
           .clipShape(.capsule)
       }
     }
   }
   
   private var infoView: some View {
-    HStack(spacing: 63) {
+    HStack(spacing: 32) {
       Button {
         toggleButtonAction()
       } label: {
-        Image(systemName: toggleButtonImage())
-          .foregroundStyle(.black)
-          .frame(width: 44, height: 44)
-          .background(.gray)
+        Image(toggleButtonImage())
+          .resizable()
+          .frame(width: 46, height: 46)
           .clipShape(.circle)
       }
       .buttonStyle(.plain)
       
       Text(viewModel.timeString)
-        .foregroundStyle(.black)
-        .font(.title)
+        .font(.FontSystem.h1)
+        .foregroundStyle(.B_10)
       
       Button {
         viewModel.timerStop(context: context) { result in
@@ -78,10 +79,9 @@ extension MeasureSheetView {
           }
         }
       } label: {
-        Image(systemName: "stop.fill")
-          .foregroundStyle(.white)
-          .frame(width: 44, height: 44)
-          .background(.blue)
+        Image(.btStop)
+          .resizable()
+          .frame(width: 46, height: 46)
           .clipShape(.circle)
       }
       .buttonStyle(.plain)
@@ -94,11 +94,11 @@ extension MeasureSheetView {
   private func toggleButtonImage() -> String {
     switch viewModel.timerState {
     case .stopped:
-      return "play.fill"
+      return "btStop"
     case .running:
-      return "pause.fill"
+      return "btPause"
     case .pause:
-      return "play.fill"
+      return "btPlay"
     }
   }
   

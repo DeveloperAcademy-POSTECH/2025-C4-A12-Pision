@@ -91,6 +91,8 @@ extension VisionManager {
     do {
       try sequenceHandler.perform([poseRequest], on: pixelBuffer)
       guard let first = poseRequest.results?.first else { return }
+
+      // 어깨 위치 체크 (기존)
       guard let left = try? first.recognizedPoint(.leftShoulder),
             let right = try? first.recognizedPoint(.rightShoulder),
             left.confidence > 0.2, right.confidence > 0.2 else {
@@ -99,10 +101,15 @@ extension VisionManager {
         }
         return
       }
-      
+
+      let label = mlManager.bodyPosePredict(from: first)
+      DispatchQueue.main.async {
+        self.mlPredictions.append(label)
+      }
+
       let points = (left: CGPoint(x: left.x, y: left.y),
                     right: CGPoint(x: right.x, y: right.y))
-      
+
       DispatchQueue.main.async {
         self.shoulderPoints = points
       }
