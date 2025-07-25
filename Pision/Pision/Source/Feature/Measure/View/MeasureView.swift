@@ -31,7 +31,7 @@ extension MeasureView {
       
       if viewModel.isNext {
         MeasureRecordView(viewModel: viewModel, context: context)
-      } else {
+      } else { 
         MeasureGuideView(viewModel: viewModel)
       }
     }
