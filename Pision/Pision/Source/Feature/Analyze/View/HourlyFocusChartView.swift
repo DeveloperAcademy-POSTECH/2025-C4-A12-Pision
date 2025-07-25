@@ -34,6 +34,7 @@ extension AnalyzeView {
         .background(Color.W_00)
         .cornerRadius(16)
       }
+      .frame(height: 227)
       .padding(.top, 13)
     }
 
@@ -68,6 +69,7 @@ extension AnalyzeView {
         gridLines
         chartBars
       }
+      .frame(minWidth: 350)
     }
 
     /// 수평 그리드 라인들
