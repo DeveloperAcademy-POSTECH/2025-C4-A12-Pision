@@ -55,7 +55,7 @@ extension AnalyzeView {
     private var focusChartWithLabels: some View {
       let dataCount = taskData.focusRatio.count
       let shouldScroll = dataCount > 12
-      let chartWidth = CGFloat(max(280, (dataCount + 1) * 20)) // 최소 너비 보장
+      let chartWidth = CGFloat(max(285, (dataCount + 1) * 20)) // 최소 너비 보장
       
       let chartContent = VStack(alignment: .leading, spacing: 2) {
         chartWithGrid
@@ -138,7 +138,8 @@ extension AnalyzeView {
           }
         }
       }
-      .padding(.leading, 2)
+//      .background(Color.B_50)
+//      .padding(.leading, 2)
     }
 
     /// 범례 표시
