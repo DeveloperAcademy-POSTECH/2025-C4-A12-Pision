@@ -63,7 +63,7 @@ struct CoreScoreView: View {
 
   private var chartSectionView: some View {
     VStack(alignment: .leading, spacing: 20) {
-      HStack(spacing: 0) {
+      HStack(spacing: 10) {
         yAxisLabels
         coreScoreChartWithLabels
       }
@@ -95,14 +95,12 @@ struct CoreScoreView: View {
   private var coreScoreChartWithLabels: some View {
     let dataCount = viewModel.dataPointCount
     let shouldScroll = dataCount > 12
-    let chartWidth = CGFloat(max(285, (dataCount + 1) * 20)) // 최소 너비 보장
     
     let chartContent = VStack(alignment: .leading, spacing: 2) {
       chartWithGrid
       xAxisLabels
     }
     .padding(.top, 13)
-    .frame(width: chartWidth, alignment: .leading)
     .background(Color.BR_20)
 
     return Group {
@@ -131,7 +129,7 @@ struct CoreScoreView: View {
   /// 수평 및 수직 그리드 라인들
   private var gridLines: some View {
     let dataCount = viewModel.dataPointCount
-    let chartWidth = CGFloat(max(285, (dataCount + 1) * 20))
+    let chartWidth = CGFloat(max(270, (dataCount + 1) * 20))
     let chartHeight: CGFloat = 120
     
     // 수직 그리드 라인 개수 결정
