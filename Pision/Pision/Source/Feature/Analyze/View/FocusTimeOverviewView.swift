@@ -14,9 +14,11 @@ extension AnalyzeView {
     let taskData: TaskData
 
     var body: some View {
-      VStack(alignment: .leading, spacing: 21) {
+      VStack(alignment: .leading, spacing: 0) {
         timeAndScoreText
-        progressBar
+          .padding(.bottom, 25)
+        progressBarWithOverlay
+          .padding(.bottom, 15)
         focusAndTotalTime
       }
       .padding(20)
@@ -54,23 +56,48 @@ extension AnalyzeView {
       }
     }
 
-    // MARK: - 프로그레스 바
-    private var progressBar: some View {
+    // MARK: - 프로그레스 바 + 퍼센트 오버레이
+    private var progressBarWithOverlay: some View {
       ZStack {
-        Capsule()
-          .fill(Color.BR_50)
-          .frame(height: 8)
-
-        GeometryReader { geometry in
+        // 프로그레스 바
+        ZStack {
           Capsule()
-            .fill(Color.BR_00)
-            .frame(
-              width: geometry.size.width * CGFloat(taskData.averageScore / 100),
-              height: 8
-            )
+            .fill(Color.BR_50)
+            .frame(height: 8)
+
+          GeometryReader { geometry in
+            Capsule()
+              .fill(Color.BR_00)
+              .frame(
+                width: geometry.size.width * CGFloat(taskData.averageScore / 100),
+                height: 8
+              )
+          }
+        }
+        .frame(height: 10)
+        
+        // 퍼센트 오버레이 (프로그레스바 끝에 위치)
+        GeometryReader { geometry in
+          ZStack(alignment: .top) {
+            // 말풍선 이미지
+            Image(.bubble)
+              .resizable()
+              .aspectRatio(contentMode: .fit)
+              .frame(width: 50, height: 37)
+
+            // 텍스트 오버레이
+            VStack {
+              Text("\(Int(taskData.averageScore))%")
+                .font(.FontSystem.h4)
+                .foregroundColor(.white)
+            }.padding(.top,5)
+          }
+          .position(
+            x: geometry.size.width * CGFloat(taskData.averageScore / 100) - 1,
+            y: -22 // 프로그레스 바 위로 이동
+          )
         }
       }
-      .frame(height: 10)
     }
 
     // MARK: - 집중시간, 공부시간
@@ -119,15 +146,14 @@ private extension AnalyzeView {
   }
 }
 
-//#Preview {
-//  let container = try! ModelContainer(
-//    for: TaskData.self,
-//    configurations: ModelConfiguration(isStoredInMemoryOnly: true)
-//  )
-//
-//  let context = container.mainContext
-//  context.insert(TaskData.mock)
-//
-//  return AnalyzeView.FocusTimeOverviewView(taskData: TaskData.mock)
-//}
+#Preview {
+  let container = try! ModelContainer(
+    for: TaskData.self,
+    configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+  )
 
+  let context = container.mainContext
+  context.insert(TaskData.mock)
+
+  return AnalyzeView.FocusTimeOverviewView(taskData: TaskData.mock)
+}
