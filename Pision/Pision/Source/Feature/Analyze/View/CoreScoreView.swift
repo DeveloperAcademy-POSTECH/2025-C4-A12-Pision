@@ -85,7 +85,8 @@ struct CoreScoreView: View {
         .font(.spoqaHanSansNeo(type: .regular, size: 12))
     }
     .foregroundColor(Color.B_00)
-    .padding(.bottom, 3)
+    .padding(.bottom, 10)
+    .padding(.top, 5)
     .frame(width: 25)
     .background(Color.BR_10)
     .background(Color.pink)
