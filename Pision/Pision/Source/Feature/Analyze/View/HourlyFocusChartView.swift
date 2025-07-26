@@ -103,19 +103,21 @@ extension AnalyzeView {
     private var chartBars: some View {
       HStack(spacing: 7.1) {
         ForEach(Array(taskData.focusRatio.enumerated()), id: \.offset) { idx, ratio in
-          ZStack {
+          ZStack(alignment: .bottom) { // bottom 정렬 추가
+            // 배경 바 (전체 높이)
             Rectangle()
               .fill(Color.BR_50)
               .frame(width: 15.38, height: 95)
               .cornerRadius(4)
 
-            VStack {
-              Spacer()
-              Rectangle()
-                .fill(Color.BR_20)
-                .frame(width: 15.38, height: CGFloat(ratio * (95.0 / 100.0)))
-                .cornerRadius(4)
-            }
+            // 집중도 바 (비율에 따른 높이)
+            Rectangle()
+              .fill(Color.BR_20)
+              .frame(
+                width: 15.38,
+                height: max(0, min(95, CGFloat(ratio * (95.0 / 100.0)))) // 최소 0, 최대 95로 제한
+              )
+              .cornerRadius(4)
           }
         }
       }
