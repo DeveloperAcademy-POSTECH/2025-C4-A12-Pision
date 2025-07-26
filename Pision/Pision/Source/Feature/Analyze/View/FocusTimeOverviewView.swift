@@ -119,15 +119,15 @@ private extension AnalyzeView {
   }
 }
 
-#Preview {
-  let container = try! ModelContainer(
-    for: TaskData.self,
-    configurations: ModelConfiguration(isStoredInMemoryOnly: true)
-  )
-
-  let context = container.mainContext
-  context.insert(TaskData.mock)
-
-  return AnalyzeView.FocusTimeOverviewView(taskData: TaskData.mock)
-}
+//#Preview {
+//  let container = try! ModelContainer(
+//    for: TaskData.self,
+//    configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+//  )
+//
+//  let context = container.mainContext
+//  context.insert(TaskData.mock)
+//
+//  return AnalyzeView.FocusTimeOverviewView(taskData: TaskData.mock)
+//}
 

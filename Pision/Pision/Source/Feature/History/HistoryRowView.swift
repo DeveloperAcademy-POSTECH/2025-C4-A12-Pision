@@ -103,6 +103,6 @@ extension HistoryRowView{
   }
 }
 
-#Preview {
-  HistoryRowView(task: HistoryView.mock)
-}
+//#Preview {
+//  HistoryRowView(task: HistoryView.mock)
+//}

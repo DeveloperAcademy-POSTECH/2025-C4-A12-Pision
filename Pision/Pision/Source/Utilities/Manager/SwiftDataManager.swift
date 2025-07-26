@@ -45,6 +45,7 @@ final class SwiftDataManager {
       focusRatio: taskData.focusRatio,
       focusTime: taskData.focusTime,
       durationTime: taskData.durationTime,
+      snoozeImageDatas: taskData.snoozeImageDatas,
       avgCoreDatas: coreModels,
       avgAuxDatas: auxModels
     )

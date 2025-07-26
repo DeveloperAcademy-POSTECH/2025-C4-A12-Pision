@@ -25,6 +25,7 @@ final class MeasureViewModel: ObservableObject {
   }
   
   // MARK: - Brightness Var
+  @Published private(set) var shouldDimScreen: Bool = false
   @Published var isAutoBrightnessModeOn: Bool = false {
     didSet {
       if !isAutoBrightnessModeOn {
@@ -62,7 +63,6 @@ final class MeasureViewModel: ObservableObject {
   
   // MARK: - Measure Var
   @Published private(set) var currentFocusRatio: Float = 0.0
-  @Published private(set) var shouldDimScreen: Bool = false
   private var coreScoreHistory: [CoreScoreModel] = []
   private var auxScoreHistory: [AuxScoreModel] = []
   private var coreScoreHistory10Minute: [AvgCoreScoreModel] = []
@@ -70,6 +70,7 @@ final class MeasureViewModel: ObservableObject {
   private var taskData: TaskDataModel?
   private var focusTime: Int = 0
   private var focusRatios: [Float] = []
+  private var snoozeImageDatas: [Data] = []
 
   // MARK: - General
   // Manager
@@ -91,6 +92,15 @@ final class MeasureViewModel: ObservableObject {
       startAutoBrightnessMode()
     } else {
       cancelAutoBrightnessMode()
+    }
+    
+    visionManager.onSnoozeDetected = { [weak self] detected in
+      guard detected else { return }
+      self?.cameraManager.captureSnoozePhoto()
+    }
+    
+    cameraManager.onPhotoCaptured = { [weak self] data in
+      self?.snoozeImageDatas.append(data)
     }
   }
   
@@ -337,6 +347,7 @@ extension MeasureViewModel {
       focusRatio: focusRatios,
       focusTime: focusTime,
       durationTime: secondsElapsed,
+      snoozeImageDatas: snoozeImageDatas,
       avgCoreDatas: coreScoreHistory10Minute,
       avgAuxDatas: auxScoreHistory10Minute
     )

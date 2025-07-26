@@ -17,6 +17,7 @@ class TaskData {
   var focusRatio: [Float]
   var focusTime: Int
   var durationTime: Int
+  var snoozeImageDatas: [Data]
   
   @Relationship(deleteRule: .cascade) var avgCoreDatas: [AvgCoreScore]
   @Relationship(deleteRule: .cascade) var avgAuxDatas: [AvgAuxScore]
@@ -28,6 +29,7 @@ class TaskData {
     focusRatio: [Float],
     focusTime: Int,
     durationTime: Int,
+    snoozeImageDatas: [Data],
     avgCoreDatas: [AvgCoreScore],
     avgAuxDatas: [AvgAuxScore]
   ) {
@@ -37,6 +39,7 @@ class TaskData {
     self.focusRatio = focusRatio
     self.focusTime = focusTime
     self.durationTime = durationTime
+    self.snoozeImageDatas = snoozeImageDatas
     self.avgCoreDatas = avgCoreDatas
     self.avgAuxDatas = avgAuxDatas
   }

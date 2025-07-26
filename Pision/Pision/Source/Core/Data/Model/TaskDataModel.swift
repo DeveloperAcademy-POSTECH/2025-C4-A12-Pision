@@ -14,6 +14,7 @@ struct TaskDataModel {
   let focusRatio: [Float]
   let focusTime: Int
   let durationTime: Int
+  let snoozeImageDatas: [Data]
   let avgCoreDatas: [AvgCoreScoreModel]
   let avgAuxDatas: [AvgAuxScoreModel]
 }

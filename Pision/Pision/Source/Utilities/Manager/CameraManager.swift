@@ -6,17 +6,21 @@
 //
 
 import AVFoundation
+import UIKit
 
 // MARK: - CameraManager
 final class CameraManager: NSObject {
   let session = AVCaptureSession()
-  
+
+  private var lastCaptureDate: Date? = nil
   private var isMeasuring: Bool = false
+  private let photoOutput = AVCapturePhotoOutput()
   private let videoOutput = AVCaptureVideoDataOutput()
   private var isSessionConfigured = false
   private let sessionQueue = DispatchQueue(label: "CameraSessionQueue")
   
   private let visionManager: VisionManager
+  var onPhotoCaptured: ((Data) -> Void)?
   
   init(visionManager: VisionManager) {
     self.visionManager = visionManager
@@ -58,7 +62,6 @@ extension CameraManager {
     isMeasuring = false
   }
   
-  
   /// 카메라 권한을 요청하고, 허용된 경우 세션 구성을 진행합니다.
   /// 이미 권한이 있는 경우 바로 구성하며, 거부된 경우 로그만 출력합니다.
   func requestAndCheckPermissions() {
@@ -79,6 +82,18 @@ extension CameraManager {
     @unknown default:
       print("알 수 없는 권한 상태")
     }
+  }
+  
+  func captureSnoozePhoto() {
+    let settings = AVCapturePhotoSettings()
+    let now = Date()
+    
+    if let last = lastCaptureDate, now.timeIntervalSince(last) < 600 {
+      return
+    }
+    
+    lastCaptureDate = now
+    photoOutput.capturePhoto(with: settings, delegate: self)
   }
 }
 
@@ -123,6 +138,10 @@ extension CameraManager {
       }
     }
     
+    if session.canAddOutput(photoOutput) {
+      session.addOutput(photoOutput)
+    }
+    
     session.commitConfiguration()
   }
 }
@@ -134,6 +153,21 @@ extension CameraManager: AVCaptureVideoDataOutputSampleBufferDelegate {
     guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
     visionManager.processFaceLandMark(pixelBuffer: pixelBuffer)
     visionManager.processBodyPose(pixelBuffer: pixelBuffer)
+  }
+}
+
+extension CameraManager: AVCapturePhotoCaptureDelegate {
+  func photoOutput(_ output: AVCapturePhotoOutput,
+                   didFinishProcessingPhoto photo: AVCapturePhoto,
+                   error: (any Error)?) {
+    guard error == nil,
+          let data = photo.fileDataRepresentation()
+    else {
+      print("캡처 실패")
+      return
+    }
+  
+    onPhotoCaptured?(data)
   }
 }
 

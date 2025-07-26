@@ -266,17 +266,17 @@ struct CoreScoreView: View {
   }
 }
 
-#Preview {
-  let container = try! ModelContainer(
-    for: TaskData.self,
-    configurations: ModelConfiguration(isStoredInMemoryOnly: true)
-  )
-
-  let context = container.mainContext
-  context.insert(TaskData.mock)
-
-  return CoreScoreView(viewModel: CoreScoreViewModel(taskData: TaskData.mock))
-    .modelContainer(container)
-    .padding()
-    .background(Color.gray.opacity(0.1))
-}
+//#Preview {
+//  let container = try! ModelContainer(
+//    for: TaskData.self,
+//    configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+//  )
+//
+//  let context = container.mainContext
+//  context.insert(TaskData.mock)
+//
+//  return CoreScoreView(viewModel: CoreScoreViewModel(taskData: TaskData.mock))
+//    .modelContainer(container)
+//    .padding()
+//    .background(Color.gray.opacity(0.1))
+//}
