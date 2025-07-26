@@ -11,6 +11,8 @@ import SwiftData
 // MARK: - 시간별 집중도 바 차트 뷰
 extension AnalyzeView {
   struct HourlyFocusChartView: View {
+    @State private var selectedBarIndex: Int? = nil // 선택된 막대 인덱스
+    
     let taskData: TaskData
 
     var body: some View {
@@ -34,7 +36,6 @@ extension AnalyzeView {
         .background(Color.W_00)
         .cornerRadius(16)
       }
-//      .frame(height: 227)
       .padding(.top, 13)
     }
 
@@ -75,13 +76,13 @@ extension AnalyzeView {
       }
     }
 
-    /// 차트와 배경 그리드
+    // 차트와 배경 그리드
     private var chartWithGrid: some View {
       ZStack(alignment: .leading) {
         gridLines
         chartBars
+        percentageOverlay // 퍼센트 오버레이 추가
       }
-//      .frame(minWidth: 350)
     }
 
     /// 수평 그리드 라인들
@@ -103,7 +104,7 @@ extension AnalyzeView {
     private var chartBars: some View {
       HStack(spacing: 7.1) {
         ForEach(Array(taskData.focusRatio.enumerated()), id: \.offset) { idx, ratio in
-          ZStack(alignment: .bottom) { // bottom 정렬 추가
+          ZStack(alignment: .bottom) {
             // 배경 바 (전체 높이)
             Rectangle()
               .fill(Color.BR_50)
@@ -115,10 +116,50 @@ extension AnalyzeView {
               .fill(Color.BR_20)
               .frame(
                 width: 15.38,
-                height: max(0, min(95, CGFloat(ratio * (95.0 / 100.0)))) // 최소 0, 최대 95로 제한
+                height: max(0, min(95, CGFloat(ratio * (95.0 / 100.0))))
               )
               .cornerRadius(4)
           }
+          .scaleEffect(selectedBarIndex == idx ? 0.95 : 1.0) // 선택된 막대 스케일 효과
+          .animation(.easeInOut(duration: 0.1), value: selectedBarIndex) // 애니메이션 추가
+          .onTapGesture {
+            // 같은 막대를 다시 누르면 선택 해제, 다른 막대를 누르면 선택
+            selectedBarIndex = (selectedBarIndex == idx) ? nil : idx
+          }
+        }
+      }
+      .frame(height: 95)
+      .padding(.leading, 7.1)
+    }
+    
+    /// 퍼센트 오버레이 (차트 위에 띄워서 표시)
+    private var percentageOverlay: some View {
+      HStack(spacing: 7.1) {
+        ForEach(Array(taskData.focusRatio.enumerated()), id: \.offset) { idx, ratio in
+          VStack {
+            if selectedBarIndex == idx {
+              // 말풍선 배경과 퍼센트 텍스트
+              ZStack {
+                // 말풍선 모양 배경 (임시로 둥근 사각형 사용)
+                RoundedRectangle(cornerRadius: 8)
+                  .fill(Color.BR_00)
+                  .frame(width: 40, height: 24)
+                
+                Text("\(Int(ratio))%")
+                  .font(.spoqaHanSansNeo(type: .bold, size: 10))
+                  .foregroundColor(.white)
+              }
+              .offset(y: -27) // 차트 위로 이동
+            } else {
+              // 선택되지 않은 막대는 투명한 공간으로 유지
+              Color.clear
+                .frame(width: 40, height: 24)
+                .offset(y: -27)
+            }
+            
+            Spacer()
+          }
+          .frame(width: 15.38) // 막대와 동일한 너비
         }
       }
       .frame(height: 95)
@@ -140,8 +181,6 @@ extension AnalyzeView {
           }
         }
       }
-//      .background(Color.B_50)
-//      .padding(.leading, 2)
     }
 
     /// 범례 표시
