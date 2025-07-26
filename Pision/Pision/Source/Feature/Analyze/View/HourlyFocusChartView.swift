@@ -140,14 +140,18 @@ extension AnalyzeView {
             if selectedBarIndex == idx {
               // 말풍선 배경과 퍼센트 텍스트
               ZStack {
-                // 말풍선 모양 배경 (임시로 둥근 사각형 사용)
-                RoundedRectangle(cornerRadius: 8)
-                  .fill(Color.BR_00)
+                // 말풍선 모양 배경
+                Image(.bubble)
+                  .resizable()
+                  .aspectRatio(contentMode: .fit)
                   .frame(width: 40, height: 24)
-                
-                Text("\(Int(ratio))%")
-                  .font(.spoqaHanSansNeo(type: .bold, size: 10))
-                  .foregroundColor(.white)
+
+                VStack {
+                  Text("\(Int(ratio))%")
+                    .font(.spoqaHanSansNeo(type: .bold, size: 10))
+                    .foregroundColor(.white)
+                }
+                .padding(.bottom, 3)
               }
               .offset(y: -27) // 차트 위로 이동
             } else {
