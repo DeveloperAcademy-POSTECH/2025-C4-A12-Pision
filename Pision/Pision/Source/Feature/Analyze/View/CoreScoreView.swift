@@ -63,7 +63,7 @@ struct CoreScoreView: View {
 
   private var chartSectionView: some View {
     VStack(alignment: .leading, spacing: 20) {
-      HStack(spacing: 10) {
+      HStack(spacing: 0) {
         yAxisLabels
         coreScoreChartWithLabels
       }
@@ -71,7 +71,6 @@ struct CoreScoreView: View {
 
       coreScoreChartLegend
     }
-//    .frame(width: 310)
     .background(Color.BR_10)
   }
 
@@ -88,7 +87,6 @@ struct CoreScoreView: View {
     .padding(.bottom, 10)
     .padding(.top, 5)
     .frame(width: 25)
-    .background(Color.BR_10)
     .background(Color.pink)
   }
 
@@ -122,6 +120,7 @@ struct CoreScoreView: View {
       lineChart
     }
     .frame(height: 120) // 차트 높이 고정
+    .padding(.leading, 5)
 
 //    .background(Color.pink)
 //    .padding(.leading, 5)
@@ -130,11 +129,11 @@ struct CoreScoreView: View {
   /// 수평 및 수직 그리드 라인들
   private var gridLines: some View {
     let dataCount = viewModel.dataPointCount
-    let chartWidth = CGFloat(max(270, (dataCount + 1) * 20))
+    let chartWidth = CGFloat(max(280, (dataCount + 1) * 20))
     let chartHeight: CGFloat = 120
     
     // 수직 그리드 라인 개수 결정
-    let verticalLineCount = max(12, viewModel.dataPointCount + 1)
+    let verticalLineCount = max(14, viewModel.dataPointCount + 1)
     let spacing = (chartWidth - CGFloat(verticalLineCount)) / CGFloat(verticalLineCount - 1)
     
     return ZStack {
@@ -254,7 +253,7 @@ struct CoreScoreView: View {
         Spacer()
       }
       .frame(width: 35)
-//      .background(Color.BR_00)
+      .background(Color.BR_00)
       HStack(spacing: 22.5) {
         ForEach(Array(viewModel.normalizedYawScores.enumerated()), id: \.offset) { idx, _ in
           if idx >= 2 && (idx + 1) * 10 % 30 == 0 {
@@ -269,7 +268,7 @@ struct CoreScoreView: View {
         }
       }
     }
-    .padding(.leading, 3)
+    .padding(.leading, 5)
     .background(Color.yellow)
     .frame(height: 15) // X축 라벨 높이 고정
   }
