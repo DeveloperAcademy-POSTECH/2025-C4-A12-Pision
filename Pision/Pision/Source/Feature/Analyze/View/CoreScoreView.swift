@@ -23,7 +23,7 @@ struct CoreScoreView: View {
   }
 
   private var contentView: some View {
-    VStack {
+    VStack(alignment: .leading) {
       headerView
       if viewModel.isExpanded {
         chartSectionView
@@ -58,18 +58,21 @@ struct CoreScoreView: View {
         Image(viewModel.isExpanded ? "dropUp" : "dropDown")
       }
     }
+    .background(Color.BR_20)
   }
 
   private var chartSectionView: some View {
     VStack(alignment: .leading, spacing: 20) {
-      HStack(spacing: 5) {
+      HStack(spacing: 0) {
         yAxisLabels
         coreScoreChartWithLabels
       }
+      .background(Color.green)
 
       coreScoreChartLegend
     }
-    .frame(height: 195)
+//    .frame(width: 310)
+    .background(Color.BR_10)
   }
 
   /// y축 라벨 (100, 0)
@@ -83,13 +86,16 @@ struct CoreScoreView: View {
     }
     .foregroundColor(Color.B_00)
     .padding(.bottom, 3)
+    .frame(width: 25)
+    .background(Color.BR_10)
+    .background(Color.pink)
   }
 
   /// 라인 차트와 x축 라벨 포함
   private var coreScoreChartWithLabels: some View {
     let dataCount = viewModel.dataPointCount
     let shouldScroll = dataCount > 12
-    let chartWidth = CGFloat(max(280, (dataCount + 1) * 20)) // 최소 너비 보장
+    let chartWidth = CGFloat(max(285, (dataCount + 1) * 20)) // 최소 너비 보장
     
     let chartContent = VStack(alignment: .leading, spacing: 2) {
       chartWithGrid
@@ -97,6 +103,7 @@ struct CoreScoreView: View {
     }
     .padding(.top, 13)
     .frame(width: chartWidth, alignment: .leading)
+    .background(Color.BR_20)
 
     return Group {
       if shouldScroll {
@@ -115,42 +122,48 @@ struct CoreScoreView: View {
       gridLines
       lineChart
     }
-    .padding(.leading, 5)
+    .frame(height: 120) // 차트 높이 고정
+
+//    .background(Color.pink)
+//    .padding(.leading, 5)
   }
 
   /// 수평 및 수직 그리드 라인들
   private var gridLines: some View {
-    let chartWidth = CGFloat((viewModel.dataPointCount + 1 ) * 20)
+    let dataCount = viewModel.dataPointCount
+    let chartWidth = CGFloat(max(285, (dataCount + 1) * 20))
     let chartHeight: CGFloat = 120
+    
+    // 수직 그리드 라인 개수 결정
+    let verticalLineCount = max(12, viewModel.dataPointCount + 1)
+    let spacing = (chartWidth - CGFloat(verticalLineCount)) / CGFloat(verticalLineCount - 1)
     
     return ZStack {
       // 수평 그리드 라인
-      VStack {
-        ForEach(0..<4) { _ in
+      VStack(spacing: 0) {
+        ForEach(0..<5) { index in
           Rectangle()
-            .fill(Color.BR_50.opacity(0.5))
+            .fill(Color.BR_50)
             .frame(width: chartWidth, height: 1)
-          Spacer()
-        }
-        Rectangle()
-          .fill(Color.BR_50.opacity(0.5))
-          .frame(width: chartWidth, height: 1)
-      }
-      .frame(height: chartHeight)
-      
-      // 수직 그리드 라인
-      HStack {
-        ForEach(0..<viewModel.dataPointCount + 1, id: \.self) { index in
-          Rectangle()
-            .fill(Color.BR_50.opacity(0.3))
-            .frame(width: 1, height: chartHeight)
-          if index < viewModel.dataPointCount {
+          if index < 4 {
             Spacer()
           }
         }
       }
+      .frame(height: chartHeight)
+      
+      // 수직 그리드 라인 (조건부 개수)
+      HStack(spacing: spacing) {
+        ForEach(0..<verticalLineCount, id: \.self) { index in
+          Rectangle()
+            .fill(Color.BR_50)
+            .frame(width: 1, height: chartHeight)
+        }
+      }
       .frame(width: chartWidth, height: chartHeight)
+//      .padding(2)
     }
+    .background(Color.BR_40)
   }
 
   /// 커스텀 라인 차트
@@ -234,22 +247,32 @@ struct CoreScoreView: View {
 
   /// x축 시간 레이블 (10분, 30분, 60분...)
   private var xAxisLabels: some View {
-    HStack(spacing: 12) {
-      Text("10분")
-        .font(.spoqaHanSansNeo(type: .regular, size: 12))
-        .foregroundColor(Color.B_00)
-      HStack(spacing: 27.5) {
+    HStack(spacing: 0) {
+      HStack {
+        Text("10분")
+          .font(.spoqaHanSansNeo(type: .regular, size: 12))
+          .foregroundColor(Color.B_00)
+        Spacer()
+      }
+      .frame(width: 35)
+//      .background(Color.BR_00)
+      HStack(spacing: 22.5) {
         ForEach(Array(viewModel.normalizedYawScores.enumerated()), id: \.offset) { idx, _ in
           if idx >= 2 && (idx + 1) * 10 % 30 == 0 {
-            Text("\((idx + 1) * 10)분")
-              .font(.spoqaHanSansNeo(type: .regular, size: 12))
-              .foregroundColor(Color.B_00)
-              .frame(width: 35, height: 12)
+            HStack {
+              Text("\((idx + 1) * 10)분")
+                .font(.spoqaHanSansNeo(type: .regular, size: 12))
+                .foregroundColor(Color.B_00)
+            }
+            .frame(width: 40)
+//            .background(Color.BR_10)
           }
         }
       }
     }
     .padding(.leading, 3)
+    .background(Color.yellow)
+    .frame(height: 15) // X축 라벨 높이 고정
   }
 
   /// 범례 표시
