@@ -21,7 +21,10 @@ final class VisionManager: ObservableObject {
   @Published private(set) var shoulderPoints: (left: CGPoint, right: CGPoint)? = nil
   @Published private(set) var faceRectangle: [CGRect] = []
   @Published private(set) var mlPredictions: [String] = []
+  @Published private(set) var isSnoozeDetected: Bool = false
   @Published private(set) var blinkCount: Int = 0
+  
+  var onSnoozeDetected: ((Bool) -> Void)?
   
   // General var
   private let sequenceHandler = VNSequenceRequestHandler()
@@ -66,6 +69,7 @@ extension VisionManager {
           
           DispatchQueue.main.async {
             self.latestYaw = absYaw
+            print(absYaw)
           }
         }
         
@@ -105,6 +109,11 @@ extension VisionManager {
       let label = mlManager.bodyPosePredict(from: first)
       DispatchQueue.main.async {
         self.mlPredictions.append(label)
+        
+        let lastEAR = self.ears.last ?? 1.0
+        print(lastEAR)
+        let isSnooze = (label == "Snooze" && lastEAR < 0.1)
+        self.onSnoozeDetected?(isSnooze)
       }
 
       let points = (left: CGPoint(x: left.x, y: left.y),
