@@ -34,7 +34,7 @@ extension AnalyzeView {
         .background(Color.W_00)
         .cornerRadius(16)
       }
-      .frame(height: 227)
+//      .frame(height: 227)
       .padding(.top, 13)
     }
 
@@ -55,13 +55,15 @@ extension AnalyzeView {
     private var focusChartWithLabels: some View {
       let dataCount = taskData.focusRatio.count
       let shouldScroll = dataCount > 12
+      let chartWidth = CGFloat(max(280, (dataCount + 1) * 20)) // 최소 너비 보장
       
       let chartContent = VStack(alignment: .leading, spacing: 2) {
         chartWithGrid
         xAxisLabels
       }
       .padding(.top, 13)
-      
+      .frame(width: chartWidth, height: 115, alignment: .leading)
+
       return Group {
         if shouldScroll {
           ScrollView(.horizontal, showsIndicators: false) {
@@ -71,7 +73,6 @@ extension AnalyzeView {
           chartContent
         }
       }
-      .frame(height: 115)
     }
 
     /// 차트와 배경 그리드
@@ -80,7 +81,7 @@ extension AnalyzeView {
         gridLines
         chartBars
       }
-      .frame(minWidth: 350)
+//      .frame(minWidth: 350)
     }
 
     /// 수평 그리드 라인들
@@ -166,4 +167,21 @@ extension AnalyzeView {
   }
 }
 
-//onSnoozeDetected
+#Preview {
+  let container = try! ModelContainer(
+    for: TaskData.self,
+    configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+  )
+  
+  let context = container.mainContext
+  context.insert(TaskData.mock)
+
+  return VStack(spacing: 8) {
+    AnalyzeView.HourlyFocusChartView(taskData: TaskData.mock)
+  }
+  .padding(.horizontal, 20)
+  .padding(.top, 5)
+  .frame(height: 300)
+  .modelContainer(container)
+  .background(Color.BR_00)
+}

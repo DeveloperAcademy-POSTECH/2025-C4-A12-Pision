@@ -87,12 +87,25 @@ struct CoreScoreView: View {
 
   /// 라인 차트와 x축 라벨 포함
   private var coreScoreChartWithLabels: some View {
-    ScrollView(.horizontal, showsIndicators: false) {
-      VStack(alignment: .leading, spacing: 2) {
-        chartWithGrid
-        xAxisLabels
+    let dataCount = viewModel.dataPointCount
+    let shouldScroll = dataCount > 12
+    let chartWidth = CGFloat(max(280, (dataCount + 1) * 20)) // 최소 너비 보장
+    
+    let chartContent = VStack(alignment: .leading, spacing: 2) {
+      chartWithGrid
+      xAxisLabels
+    }
+    .padding(.top, 13)
+    .frame(width: chartWidth, alignment: .leading)
+
+    return Group {
+      if shouldScroll {
+        ScrollView(.horizontal, showsIndicators: false) {
+          chartContent
+        }
+      } else {
+        chartContent
       }
-      .padding(.top, 13)
     }
   }
 
