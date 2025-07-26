@@ -63,15 +63,15 @@ extension AnalyzeView {
   }
 }
 
-#Preview {
-  let container = try! ModelContainer(
-    for: TaskData.self,
-    configurations: ModelConfiguration(isStoredInMemoryOnly: true)
-  )
-  
-  let context = container.mainContext
-  context.insert(TaskData.mock)
-  
-  return AnalyzeView()
-    .modelContainer(container)
-}
+//#Preview {
+//  let container = try! ModelContainer(
+//    for: TaskData.self,
+//    configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+//  )
+//  
+//  let context = container.mainContext
+//  context.insert(TaskData.mock)
+//  
+//  return AnalyzeView()
+//    .modelContainer(container)
+//}
