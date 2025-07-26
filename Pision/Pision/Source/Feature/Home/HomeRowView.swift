@@ -1,14 +1,14 @@
 //
-//  HistoryRowView.swift
+//  HomeRowView.swift
 //  Pision
 //
-//  Created by YONGWON SEO on 7/21/25.
+//  Created by YONGWON SEO on 7/26/25.
 //
 
 import SwiftUI
 
 // MARK: - Var
-struct HistoryRowView: View {
+struct HomeRowView: View {
   let task:TaskData
   var avgFocus: Int {
     guard task.durationTime > 0 else { return 0 }
@@ -17,7 +17,7 @@ struct HistoryRowView: View {
 }
 
 // MARK: - View
-extension HistoryRowView {
+extension HomeRowView {
   var body: some View {
     HStack{
       VStack(alignment: .leading){
@@ -65,16 +65,15 @@ extension HistoryRowView {
       }
     }
     .buttonStyle(PlainButtonStyle())
-    .frame(maxWidth:.infinity, maxHeight: .infinity, alignment:.leading)
+    .frame(maxWidth:.infinity, alignment:.leading)
     .padding()
     .background(RoundedRectangle(cornerRadius: 12).fill(Color.white))
     .padding(.horizontal)
   }
 }
 
-
 // MARK: - Func
-extension HistoryRowView{
+extension HomeRowView{
   func formatted(_ date: Date) -> String {
     let formatter = DateFormatter()
     formatter.dateFormat = "HH:mm"
@@ -89,5 +88,5 @@ extension HistoryRowView{
 }
 
 #Preview {
-  HistoryRowView(task: HistoryView.mock)
+  HomeRowView(task: HistoryView.mock)
 }
