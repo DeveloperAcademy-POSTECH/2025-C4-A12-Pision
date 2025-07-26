@@ -88,11 +88,6 @@ final class MeasureViewModel: ObservableObject {
   init() {
     cameraManager = CameraManager(visionManager: visionManager)
     cameraManager.requestAndCheckPermissions()
-    if !isAutoBrightnessModeOn {
-      startAutoBrightnessMode()
-    } else {
-      cancelAutoBrightnessMode()
-    }
     
     visionManager.onSnoozeDetected = { [weak self] detected in
       guard detected else { return }
@@ -128,6 +123,7 @@ extension MeasureViewModel {
     timerState = .running
     startTimerLoop()
     cameraManager.startMeasuring()
+    startAutoBrightnessMode()
   }
   
   func timerPause() {
@@ -191,6 +187,8 @@ extension MeasureViewModel {
   
   private func startAutoBrightnessMode() {
     brightnessTimer?.cancel()
+    guard !isAutoBrightnessModeOn else { return }
+    
     let task = DispatchWorkItem {
       self.shouldDimScreen = true
     }
