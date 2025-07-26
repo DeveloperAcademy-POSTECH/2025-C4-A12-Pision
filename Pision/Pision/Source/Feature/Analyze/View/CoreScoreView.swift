@@ -32,6 +32,7 @@ struct CoreScoreView: View {
     .padding(20)
     .background(Color.W_00)
     .cornerRadius(16)
+    .animation(nil, value: viewModel.isExpanded)  // 애니메이션 비활성화
   }
 
   private var headerView: some View {
@@ -58,7 +59,6 @@ struct CoreScoreView: View {
         Image(viewModel.isExpanded ? "dropUp" : "dropDown")
       }
     }
-    .background(Color.BR_20)
   }
 
   private var chartSectionView: some View {
@@ -67,11 +67,9 @@ struct CoreScoreView: View {
         yAxisLabels
         coreScoreChartWithLabels
       }
-      .background(Color.green)
 
       coreScoreChartLegend
     }
-    .background(Color.BR_10)
   }
 
   /// y축 라벨 (100, 0)
@@ -87,7 +85,6 @@ struct CoreScoreView: View {
     .padding(.bottom, 10)
     .padding(.top, 5)
     .frame(width: 25)
-    .background(Color.pink)
   }
 
   /// 라인 차트와 x축 라벨 포함
@@ -100,7 +97,6 @@ struct CoreScoreView: View {
       xAxisLabels
     }
     .padding(.top, 13)
-    .background(Color.BR_20)
 
     return Group {
       if shouldScroll {
@@ -121,9 +117,6 @@ struct CoreScoreView: View {
     }
     .frame(height: 120) // 차트 높이 고정
     .padding(.leading, 5)
-
-//    .background(Color.pink)
-//    .padding(.leading, 5)
   }
 
   /// 수평 및 수직 그리드 라인들
@@ -159,15 +152,13 @@ struct CoreScoreView: View {
         }
       }
       .frame(width: chartWidth, height: chartHeight)
-//      .padding(2)
     }
-    .background(Color.BR_40)
   }
 
   /// 커스텀 라인 차트
   private var lineChart: some View {
     let chartWidth = CGFloat((viewModel.dataPointCount) * 20)
-    let chartHeight: CGFloat = 95
+    let chartHeight: CGFloat = 120
     
     return ZStack {
       // 고개 자세 라인 (파란색)
@@ -211,11 +202,14 @@ struct CoreScoreView: View {
       // 라인 그리기
       if points.count > 1 {
         Path { path in
-          let stepX = width / CGFloat(max(points.count - 1, 1))
+          let stepX = 22
           
           for (index, point) in points.enumerated() {
-            let x = CGFloat(index) * stepX
+            let x = CGFloat((index) * stepX + 10)
             let y = height - CGFloat(point / 100.0) * height
+            
+            // 각 포인트별 상세 정보
+            print("Point \(index): value=\(point), x=\(x), y=\(y)")
             
             if index == 0 {
               path.move(to: CGPoint(x: x, y: y))
@@ -223,6 +217,7 @@ struct CoreScoreView: View {
               path.addLine(to: CGPoint(x: x, y: y))
             }
           }
+          print("========================")
         }
         .stroke(color, lineWidth: 1)
       }
@@ -230,8 +225,8 @@ struct CoreScoreView: View {
       // 최고점에만 포인트 그리기
       if let maxValue = points.max(),
          let maxIndex = points.firstIndex(of: maxValue) {
-        let stepX = width / CGFloat(max(points.count - 1, 1))
-        let x = CGFloat(maxIndex) * stepX
+        let stepX = 22
+        let x = CGFloat((maxIndex) * stepX + 10)
         let y = height - CGFloat(maxValue / 100.0) * height
         
         Circle()
@@ -240,7 +235,6 @@ struct CoreScoreView: View {
           .position(x: x, y: y)
       }
     }
-    .padding(.leading, 10)
   }
 
   /// x축 시간 레이블 (10분, 30분, 60분...)
@@ -253,7 +247,6 @@ struct CoreScoreView: View {
         Spacer()
       }
       .frame(width: 35)
-      .background(Color.BR_00)
       HStack(spacing: 22.5) {
         ForEach(Array(viewModel.normalizedYawScores.enumerated()), id: \.offset) { idx, _ in
           if idx >= 2 && (idx + 1) * 10 % 30 == 0 {
@@ -263,13 +256,11 @@ struct CoreScoreView: View {
                 .foregroundColor(Color.B_00)
             }
             .frame(width: 40)
-//            .background(Color.BR_10)
           }
         }
       }
     }
     .padding(.leading, 5)
-    .background(Color.yellow)
     .frame(height: 15) // X축 라벨 높이 고정
   }
 
