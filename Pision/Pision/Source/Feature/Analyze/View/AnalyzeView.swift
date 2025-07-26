@@ -46,9 +46,11 @@ extension AnalyzeView {
         HourlyFocusChartView(taskData: taskData)
         CoreScoreView(viewModel:CoreScoreViewModel(taskData: taskData))
         AuxScoreView(viewModel:AuxScoreViewModel(taskData: taskData))
+        
       }
       .padding(.horizontal, 20)
       .padding(.top, 5)
+      .padding(.bottom, 150)
     }
   }
 }
