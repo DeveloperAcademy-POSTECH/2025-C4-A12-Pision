@@ -1,3 +1,4 @@
+
 //
 //  HistoryView.swift
 //  Pision
@@ -22,28 +23,101 @@ struct HistoryView: View {
       $0.startTime >= startOfDay && $0.startTime < endOfDay
     }
   }
-  
+
+  // 세션 단위로 그룹핑 (2분 이내 연속 측정)
+  var groupedSessions: [[TaskData]] {
+    var sessions: [[TaskData]] = []
+    var currentGroup: [TaskData] = []
+    let sorted = filteredTasks.sorted { $0.startTime < $1.startTime }
+    
+    for task in sorted {
+      if let last = currentGroup.last {
+        if task.startTime.timeIntervalSince(last.endTime) <= 120 {
+          currentGroup.append(task)
+        } else {
+          sessions.append(currentGroup)
+          currentGroup = [task]
+        }
+      } else {
+        currentGroup.append(task)
+      }
+    }
+    if !currentGroup.isEmpty {
+      sessions.append(currentGroup)
+    }
+    return sessions
+  }
+
+  func summarizeSessions(_ sessions: [[TaskData]]) -> (totalFocus: Int, totalDuration: Int, sessionCount: Int) {
+      var totalFocus = 0
+      var totalDuration = 0
+      var count = 0
+
+      for session in sessions {
+          guard let first = session.first, let last = session.last else { continue }
+          let duration = Int(last.endTime.timeIntervalSince(first.startTime))
+          totalDuration += duration
+          count += 1
+
+          // session 내부 집중률 평균 구함
+          let totalFocusValue = session.reduce(0) { $0 + $1.focusTime }
+          let totalDurationValue = session.reduce(0) { $0 + $1.durationTime }
+          let focusRatio = totalDurationValue == 0 ? 0.0 : Double(totalFocusValue) / Double(totalDurationValue)
+          let estimatedFocus = Int(Double(duration) * focusRatio)
+
+          totalFocus += estimatedFocus
+      }
+
+      return (totalFocus, totalDuration, count)
+  }
+
   var dailySummary: (avgFocus: Int, totalFocus: Int, totalDuration: Int, sessionCount: Int) {
-    guard !filteredTasks.isEmpty else { return (0, 0, 0, 0) }
-    let totalFocus = filteredTasks.reduce(0) { $0 + $1.focusTime }
-    let totalDuration = filteredTasks.reduce(0) { $0 + $1.durationTime }
-    let sessionCount = filteredTasks.count
-    let avgFocus = Int(Double(totalFocus) / Double(totalDuration) * 100)
-    return (avgFocus, totalFocus,  totalDuration, sessionCount)
+      let (focus, duration, count) = summarizeSessions(groupedSessions)
+      let avg = duration == 0 ? 0 : Int(Double(focus) / Double(duration) * 100)
+      return (avg, focus, duration, count)
+  }
+  
+  func mergeSession(_ group: [TaskData]) -> TaskData? {
+      guard let first = group.first, let last = group.last else { return nil }
+
+      let totalDuration = Int(last.endTime.timeIntervalSince(first.startTime))
+
+      // 평균 집중률 비율 기반으로 실제 session duration에 맞춰 focus 추정
+      let totalFocusValue = group.reduce(0) { $0 + $1.focusTime }
+      let totalDurationValue = group.reduce(0) { $0 + $1.durationTime }
+      let focusRatio = totalDurationValue == 0 ? 0.0 : Double(totalFocusValue) / Double(totalDurationValue)
+      let estimatedFocus = Int(Double(totalDuration) * focusRatio)
+
+      let allFocusRatios = group.flatMap { $0.focusRatio }
+      let allCore = group.flatMap { $0.avgCoreDatas }
+      let allAux = group.flatMap { $0.avgAuxDatas }
+
+      let averageScore = focusRatio
+
+      return TaskData(
+          startTime: first.startTime,
+          endTime: last.endTime,
+          averageScore: Float(averageScore),
+          focusRatio: allFocusRatios,
+          focusTime: estimatedFocus,
+          durationTime: totalDuration,
+          snoozeImageDatas: [],
+          avgCoreDatas: allCore,
+          avgAuxDatas: allAux
+      )
   }
 }
-
 
 // MARK: - View
 extension HistoryView {
   var body: some View {
-    ZStack{
+    ZStack {
       Image("background")
         .resizable()
         .ignoresSafeArea()
-      VStack{
-        HStack{
-          HStack{
+      VStack {
+        HStack {
+          HStack {
             Text("닉네임")
               .font(.FontSystem.b2)
               .foregroundStyle(.B_20)
@@ -61,10 +135,12 @@ extension HistoryView {
         .padding(.top)
         .padding(.leading)
         .padding(.trailing)
+        
         CalendarView(selectedDate: $selectedDate, selectedMode: $calendarMode)
           .frame(height: calendarMode == .daily ? 120 : 330)
-        ScrollView{
-          VStack{
+        
+        ScrollView {
+          VStack {
             FixedOverListView(
               avgFocus: dailySummary.avgFocus,
               focusTime: dailySummary.totalFocus,
@@ -73,7 +149,7 @@ extension HistoryView {
             )
           }
           VStack {
-            HStack{
+            HStack {
               Text("측정 리스트")
                 .font(.FontSystem.h2)
                 .foregroundStyle(.B_10)
@@ -81,12 +157,14 @@ extension HistoryView {
                 .padding(.top)
               Spacer()
             }
-            ForEach(filteredTasks) { task in
-              HistoryRowView(task: task)
+            ForEach(groupedSessions, id: \.first!.startTime) { group in
+              if let merged = mergeSession(group) {
+                HistoryRowView(task: merged)
+              }
             }
           }
         }
-        .onChange(of:selectedDate) { newValue in
+        .onChange(of: selectedDate) { newValue in
           print("선택된 날짜: \(newValue)")
         }
       }
@@ -99,100 +177,32 @@ extension HistoryView {
   
 }
 
-//extension HistoryView {
-//  static var mock: TaskData {
-//    TaskData(
-//      startTime: Date(),
-//      endTime: Date().addingTimeInterval(4 * 60 * 60), // 4시간 후
-//      averageScore: 78,
-//      focusRatio: [
-//        85, 90, 75, 80, 70, 65,  // 첫 1시간: 높은 집중도
-//        60, 55, 50, 45, 40, 35,  // 둘째 시간: 집중도 하락
-//        30, 35, 40, 50, 60, 70,  // 셋째 시간: 회복
-//        75, 80, 85, 90, 88, 82   // 넷째 시간: 안정적 집중
-//      ], // 24개 (10분 단위)
-//      focusTime: 10800, // 3시간 집중 (초)
-//      durationTime: 14400, // 4시간 전체 (초)
-//      avgCoreDatas: [
-//        // 첫 번째 시간 (6개)
-//        AvgCoreScore(avgYawScore: 35, avgEyeOpenScore: 45, avgEyeClosedScore: 10, avgBlinkFrequency: 8, avgCoreScore: 85),
-//        AvgCoreScore(avgYawScore: 38, avgEyeOpenScore: 48, avgEyeClosedScore: 8, avgBlinkFrequency: 7, avgCoreScore: 90),
-//        AvgCoreScore(avgYawScore: 32, avgEyeOpenScore: 42, avgEyeClosedScore: 12, avgBlinkFrequency: 9, avgCoreScore: 75),
-//        AvgCoreScore(avgYawScore: 36, avgEyeOpenScore: 46, avgEyeClosedScore: 9, avgBlinkFrequency: 8, avgCoreScore: 80),
-//        AvgCoreScore(avgYawScore: 30, avgEyeOpenScore: 40, avgEyeClosedScore: 14, avgBlinkFrequency: 10, avgCoreScore: 70),
-//        AvgCoreScore(avgYawScore: 28, avgEyeOpenScore: 38, avgEyeClosedScore: 16, avgBlinkFrequency: 11, avgCoreScore: 65),
-//        
-//        // 두 번째 시간 (6개)
-//        AvgCoreScore(avgYawScore: 25, avgEyeOpenScore: 35, avgEyeClosedScore: 18, avgBlinkFrequency: 12, avgCoreScore: 60),
-//        AvgCoreScore(avgYawScore: 22, avgEyeOpenScore: 32, avgEyeClosedScore: 20, avgBlinkFrequency: 13, avgCoreScore: 55),
-//        AvgCoreScore(avgYawScore: 20, avgEyeOpenScore: 30, avgEyeClosedScore: 22, avgBlinkFrequency: 14, avgCoreScore: 50),
-//        AvgCoreScore(avgYawScore: 18, avgEyeOpenScore: 28, avgEyeClosedScore: 24, avgBlinkFrequency: 15, avgCoreScore: 45),
-//        AvgCoreScore(avgYawScore: 16, avgEyeOpenScore: 26, avgEyeClosedScore: 26, avgBlinkFrequency: 16, avgCoreScore: 40),
-//        AvgCoreScore(avgYawScore: 15, avgEyeOpenScore: 24, avgEyeClosedScore: 28, avgBlinkFrequency: 17, avgCoreScore: 35),
-//        
-//        // 세 번째 시간 (6개)
-//        AvgCoreScore(avgYawScore: 17, avgEyeOpenScore: 26, avgEyeClosedScore: 26, avgBlinkFrequency: 16, avgCoreScore: 30),
-//        AvgCoreScore(avgYawScore: 20, avgEyeOpenScore: 30, avgEyeClosedScore: 22, avgBlinkFrequency: 14, avgCoreScore: 35),
-//        AvgCoreScore(avgYawScore: 24, avgEyeOpenScore: 34, avgEyeClosedScore: 18, avgBlinkFrequency: 12, avgCoreScore: 40),
-//        AvgCoreScore(avgYawScore: 28, avgEyeOpenScore: 38, avgEyeClosedScore: 15, avgBlinkFrequency: 10, avgCoreScore: 50),
-//        AvgCoreScore(avgYawScore: 32, avgEyeOpenScore: 42, avgEyeClosedScore: 12, avgBlinkFrequency: 9, avgCoreScore: 60),
-//        AvgCoreScore(avgYawScore: 35, avgEyeOpenScore: 45, avgEyeClosedScore: 10, avgBlinkFrequency: 8, avgCoreScore: 70),
-//        
-//        // 네 번째 시간 (6개)
-//        AvgCoreScore(avgYawScore: 37, avgEyeOpenScore: 47, avgEyeClosedScore: 8, avgBlinkFrequency: 7, avgCoreScore: 75),
-//        AvgCoreScore(avgYawScore: 39, avgEyeOpenScore: 49, avgEyeClosedScore: 6, avgBlinkFrequency: 6, avgCoreScore: 80),
-//        AvgCoreScore(avgYawScore: 40, avgEyeOpenScore: 50, avgEyeClosedScore: 5, avgBlinkFrequency: 5, avgCoreScore: 85),
-//        AvgCoreScore(avgYawScore: 42, avgEyeOpenScore: 52, avgEyeClosedScore: 4, avgBlinkFrequency: 4, avgCoreScore: 90),
-//        AvgCoreScore(avgYawScore: 40, avgEyeOpenScore: 50, avgEyeClosedScore: 6, avgBlinkFrequency: 6, avgCoreScore: 88),
-//        AvgCoreScore(avgYawScore: 38, avgEyeOpenScore: 48, avgEyeClosedScore: 8, avgBlinkFrequency: 7, avgCoreScore: 82)
-//      ],
-//      avgAuxDatas: [
-//        // 첫 번째 시간 (6개)
-//        AvgAuxScore(avgBlinkScore: 7, avgYawStabilityScore: 20, avgMlSnoozeScore: 15, avgAuxScore: 85),
-//        AvgAuxScore(avgBlinkScore: 6, avgYawStabilityScore: 22, avgMlSnoozeScore: 16, avgAuxScore: 90),
-//        AvgAuxScore(avgBlinkScore: 8, avgYawStabilityScore: 18, avgMlSnoozeScore: 13, avgAuxScore: 75),
-//        AvgAuxScore(avgBlinkScore: 7, avgYawStabilityScore: 19, avgMlSnoozeScore: 14, avgAuxScore: 80),
-//        AvgAuxScore(avgBlinkScore: 9, avgYawStabilityScore: 16, avgMlSnoozeScore: 12, avgAuxScore: 70),
-//        AvgAuxScore(avgBlinkScore: 10, avgYawStabilityScore: 15, avgMlSnoozeScore: 11, avgAuxScore: 65),
-//        
-//        // 두 번째 시간 (6개)
-//        AvgAuxScore(avgBlinkScore: 11, avgYawStabilityScore: 14, avgMlSnoozeScore: 10, avgAuxScore: 60),
-//        AvgAuxScore(avgBlinkScore: 12, avgYawStabilityScore: 13, avgMlSnoozeScore: 9, avgAuxScore: 55),
-//        AvgAuxScore(avgBlinkScore: 13, avgYawStabilityScore: 12, avgMlSnoozeScore: 8, avgAuxScore: 50),
-//        AvgAuxScore(avgBlinkScore: 14, avgYawStabilityScore: 11, avgMlSnoozeScore: 7, avgAuxScore: 45),
-//        AvgAuxScore(avgBlinkScore: 15, avgYawStabilityScore: 10, avgMlSnoozeScore: 6, avgAuxScore: 40),
-//        AvgAuxScore(avgBlinkScore: 16, avgYawStabilityScore: 9, avgMlSnoozeScore: 5, avgAuxScore: 35),
-//        
-//        // 세 번째 시간 (6개)
-//        AvgAuxScore(avgBlinkScore: 15, avgYawStabilityScore: 10, avgMlSnoozeScore: 6, avgAuxScore: 30),
-//        AvgAuxScore(avgBlinkScore: 14, avgYawStabilityScore: 11, avgMlSnoozeScore: 7, avgAuxScore: 35),
-//        AvgAuxScore(avgBlinkScore: 13, avgYawStabilityScore: 12, avgMlSnoozeScore: 8, avgAuxScore: 40),
-//        AvgAuxScore(avgBlinkScore: 11, avgYawStabilityScore: 14, avgMlSnoozeScore: 10, avgAuxScore: 50),
-//        AvgAuxScore(avgBlinkScore: 9, avgYawStabilityScore: 16, avgMlSnoozeScore: 12, avgAuxScore: 60),
-//        AvgAuxScore(avgBlinkScore: 8, avgYawStabilityScore: 18, avgMlSnoozeScore: 13, avgAuxScore: 70),
-//        
-//        // 네 번째 시간 (6개)
-//        AvgAuxScore(avgBlinkScore: 7, avgYawStabilityScore: 19, avgMlSnoozeScore: 14, avgAuxScore: 75),
-//        AvgAuxScore(avgBlinkScore: 6, avgYawStabilityScore: 20, avgMlSnoozeScore: 15, avgAuxScore: 80),
-//        AvgAuxScore(avgBlinkScore: 5, avgYawStabilityScore: 22, avgMlSnoozeScore: 16, avgAuxScore: 85),
-//        AvgAuxScore(avgBlinkScore: 4, avgYawStabilityScore: 24, avgMlSnoozeScore: 18, avgAuxScore: 90),
-//        AvgAuxScore(avgBlinkScore: 5, avgYawStabilityScore: 22, avgMlSnoozeScore: 16, avgAuxScore: 88),
-//        AvgAuxScore(avgBlinkScore: 6, avgYawStabilityScore: 20, avgMlSnoozeScore: 15, avgAuxScore: 82)
-//      ]
-//    )
-//  }
-//}
-//
-//
-//#Preview {
-//  let container = try! ModelContainer(
-//    for: TaskData.self,
-//    configurations: ModelConfiguration(isStoredInMemoryOnly: true)
-//  )
-//  
-//  let context = container.mainContext
-//  context.insert(HistoryView.mock)
-//  
-//  return HistoryView(selectedDate: Date())
-//    .modelContainer(container)
-//}
+// MARK: - 예시 데이터
+extension HistoryView {
+  static var mock: TaskData {
+    TaskData(
+      startTime: Date(),
+      endTime: Date().addingTimeInterval(4 * 60 * 60),
+      averageScore: 78,
+      focusRatio: Array(repeating: 80, count: 24),
+      focusTime: 10800,
+      durationTime: 14400,
+      snoozeImageDatas: [],
+      avgCoreDatas: [],
+      avgAuxDatas: []
+    )
+  }
+}
+
+#Preview {
+  let container = try! ModelContainer(
+    for: TaskData.self,
+    configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+  )
+  
+  let context = container.mainContext
+  context.insert(HistoryView.mock)
+  
+  return HistoryView(selectedDate: Date())
+    .modelContainer(container)
+}

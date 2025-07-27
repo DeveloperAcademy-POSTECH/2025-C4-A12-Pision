@@ -21,7 +21,7 @@ extension MainView {
       Group {
         switch selectedTab {
         case .home:
-          Color.white.overlay(Text("홈").font(.largeTitle))
+          HomeView()
         case .record:
           HistoryView()
         }
