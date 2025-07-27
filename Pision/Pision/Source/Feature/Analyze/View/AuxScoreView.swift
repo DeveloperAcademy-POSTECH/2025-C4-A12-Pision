@@ -52,7 +52,7 @@ struct AuxScoreView: View {
       Spacer()
 
       HStack(spacing: 16) {
-        Text("\(viewModel.averageScoreText)%")
+        Text("\(viewModel.averageScoreText)점")
           .font(.spoqaHanSansNeo(type: .bold, size: 28))
           .foregroundColor(Color.BR_00)
 
@@ -264,8 +264,9 @@ struct AuxScoreView: View {
         legendItem(color: .BR_00, label: "깜빡임 점수")
         legendItem(color: .su10, label: "졸음 점수")
       }
-      VStack(alignment: .leading, spacing: 6) {
+      VStack(alignment: .leading, spacing: 0) {
         legendItem(color: .B_00, label: "고개 안정성")
+        Spacer()
       }
       Spacer()
     }

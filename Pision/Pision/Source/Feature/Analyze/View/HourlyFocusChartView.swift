@@ -24,12 +24,14 @@ extension AnalyzeView {
         VStack(alignment: .leading, spacing: 20) {
           Text("시간별 집중률")
             .font(.FontSystem.h4)
-
-          HStack(spacing: 5) {
-            yAxisLabels
-            focusChartWithLabels
+          ZStack(alignment: .leading) {
+            HStack(spacing: 5) {
+              yAxisLabels
+              focusChartWithLabels
+            }
+            averageLineForFullChart // 평균선 오버레이
+              .padding(.bottom, 5)
           }
-
           focusChartLegend
         }
         .padding(20)
@@ -81,7 +83,7 @@ extension AnalyzeView {
       ZStack(alignment: .leading) {
         gridLines
         chartBars
-        percentageOverlay // 퍼센트 오버레이 추가
+        percentageOverlay // 퍼센트 오버레이
       }
     }
 
@@ -169,7 +171,38 @@ extension AnalyzeView {
       .frame(height: 95)
       .padding(.leading, 7.1)
     }
+    
+    // 평균선 오버레이 (전체 차트용)
+    private var averageLineForFullChart: some View {
+      let averageScore = floor(taskData.averageScore)
+      let averageY = 95 - CGFloat(averageScore * (95 / 100.0))
 
+      return VStack {
+        Spacer()
+          .frame(height: averageY)
+        
+        HStack(spacing: 4) {
+          HStack {
+            Text("평균")
+              .font(.spoqaHanSansNeo(type: .bold, size: 12))
+              .foregroundColor(Color.BR_00)
+          }
+          .frame(width: 25)
+          
+          HStack(spacing: 4) {
+            ForEach(0..<41, id: \.self) { _ in
+              Rectangle()
+                .fill(Color.BR_00)
+                .frame(width: 3, height: 1)
+            }
+          }
+          Spacer()
+        }
+        Spacer()
+      }
+      .frame(height: 95)
+    }
+    
     /// x축 시간 레이블 (30분 단위)
     private var xAxisLabels: some View {
       HStack(spacing: 16) {

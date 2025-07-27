@@ -18,7 +18,6 @@ struct CoreScoreView: View {
       }) {
         contentView
       }
-      .buttonStyle(PlainButtonStyle())
     }
   }
 
@@ -52,7 +51,7 @@ struct CoreScoreView: View {
       Spacer()
 
       HStack(spacing: 16) {
-        Text("\(viewModel.averageScoreText)%")
+        Text("\(viewModel.averageScoreText)점")
           .font(.spoqaHanSansNeo(type: .bold, size: 28))
           .foregroundColor(Color.BR_00)
 
