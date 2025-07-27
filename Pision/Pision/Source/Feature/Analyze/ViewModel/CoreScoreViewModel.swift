@@ -25,7 +25,6 @@ class CoreScoreViewModel: ObservableObject {
 
   init(taskData: TaskData) {
     self.taskData = taskData
-    generateEntries()
   }
 
   var averageScoreText: String {
@@ -39,42 +38,27 @@ class CoreScoreViewModel: ObservableObject {
 
   /// 정규화된 Yaw Score (고개 자세) - 파란색
   var normalizedYawScores: [Double] {
-    return taskData.avgCoreDatas.map { Double($0.avgYawScore) * 2.5 }
+    return taskData.avgCoreDatas.map { Double($0.avgYawScore) * (100.0 / 25.0) }
   }
 
   /// 정규화된 Eye Open Score (EAR 비율) - 검은색
   var normalizedEyeOpenScores: [Double] {
-    return taskData.avgCoreDatas.map { Double($0.avgEyeOpenScore) * 4.0 }
+    return taskData.avgCoreDatas.map { Double($0.avgEyeOpenScore) * (100.0 / 30.0) }
   }
 
   /// 정규화된 Eye Closed Score (눈 EAR) - 분홍색
   var normalizedEyeClosedScores: [Double] {
-    return taskData.avgCoreDatas.map { Double($0.avgEyeClosedScore) * 5.0 }
+    return taskData.avgCoreDatas.map { Double($0.avgEyeClosedScore) * (100.0 / 20.0) }
   }
 
   /// 정규화된 Blink Frequency (깜빡임 빈도) - 초록색
   var normalizedBlinkFrequencies: [Double] {
-    return taskData.avgCoreDatas.map { Double($0.avgBlinkFrequency) * (100.0 / 15.0) }
+    return taskData.avgCoreDatas.map { Double($0.avgBlinkFrequency) * (100.0 / 25.0) }
   }
 
   func toggleExpanded() {
     withAnimation(.easeInOut(duration: 0.3)) {
       isExpanded.toggle()
     }
-  }
-
-  private func generateEntries() {
-    guard !taskData.avgCoreDatas.isEmpty else { return }
-
-    var result: [CoreScoreEntry] = []
-
-    for (idx, score) in taskData.avgCoreDatas.enumerated() {
-      result.append(CoreScoreEntry(index: idx + 1, value: Double(score.avgYawScore) * 2.5, category: "avgYawScore"))
-      result.append(CoreScoreEntry(index: idx + 1, value: Double(score.avgEyeOpenScore) * 4.0, category: "avgEyeOpenScore"))
-      result.append(CoreScoreEntry(index: idx + 1, value: Double(score.avgEyeClosedScore) * 5.0, category: "avgEyeClosedScore"))
-      result.append(CoreScoreEntry(index: idx + 1, value: Double(score.avgBlinkFrequency) * (100.0 / 15.0), category: "avgBlinkFrequency"))
-    }
-
-    self.entries = result
   }
 }

@@ -41,7 +41,7 @@ extension MeasureSheetView {
         
         infoView
         
-        Text("집중도 \(Int(viewModel.currentFocusRatio))%")
+        Text("집중도 \(viewModel.currentFocusRatio)%")
           .font(.FontSystem.h4)
           .foregroundStyle(.W_00)
           .frame(width: 129, height: 40)
