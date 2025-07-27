@@ -23,7 +23,7 @@ extension MainView {
         case .home:
           Color.white.overlay(Text("홈").font(.largeTitle))
         case .record:
-          AnalyzeView()
+          HistoryView()
         }
       }
       CustomTabBar(selectedTab: $selectedTab)
