@@ -46,7 +46,7 @@ extension AnalyzeView {
       }
       .padding(.horizontal, 20)
       .padding(.top, 5)
-      .padding(.bottom, 150)
+      .padding(.bottom, 30)
     }
   }
 }
