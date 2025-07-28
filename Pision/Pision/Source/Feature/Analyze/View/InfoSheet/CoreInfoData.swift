@@ -10,7 +10,7 @@ extension InfoSheetData {
   static let coreScore = InfoSheetData(
     title: "CoreScore란?",
     description: "CoreScore는 30초 동안 사용자의 다양한\n지표를 종합적으로 계산해 집중 상태를\n과학적으로 판단해요!",
-    iconName: "chart.bar.doc.horizontal",
+    iconName: "coreInfo",
     items: [
       InfoItem(
         number: "1.",

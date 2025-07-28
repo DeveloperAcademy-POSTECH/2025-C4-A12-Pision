@@ -11,6 +11,11 @@ import SwiftUI
 struct InfoSheetView: View {
   @Binding var isPresented: Bool
   let data: InfoSheetData
+  let isCctv: Bool
+  
+  private let cctvDescription: String = "무심코 지나친 '집중 OFF' 순간을 되돌아보면,\n집중 패턴을 파악하고 더 나은 하루를 설계할 수 있어요!"
+  
+  private let cctvHighlightedKeywords: [String] = ["집중 OFF", "집중 패턴을 파악하고", "더 나은 하루를 설계할 수 있어요"]
   
   var body: some View {
     VStack(spacing: 0) {
@@ -25,7 +30,7 @@ struct InfoSheetView: View {
   }
   
   private var headerSection: some View {
-    VStack(spacing: 8) {
+    VStack(alignment: .leading, spacing: 8) {
       HStack {
         Spacer()
         
@@ -44,7 +49,7 @@ struct InfoSheetView: View {
       
       // 아이콘과 제목
       HStack(spacing: 38) {
-        Image(.coreInfo)
+        Image(data.iconName)
           .resizable()
           .frame(width: 79, height: 79)
         
@@ -68,15 +73,23 @@ struct InfoSheetView: View {
   }
   
   private var contentSection: some View {
-    VStack(alignment: .leading, spacing: 8) {
+    VStack(alignment: .leading, spacing: 6) {
       Text("상세 설명")
         .font(.spoqaHanSansNeo(type: .bold, size: 20))
         .foregroundColor(.black)
       
-      Text("여러 논문을 기반으로 적용된 상세 기준을 설명드릴게요")
-        .font(.spoqaHanSansNeo(type: .medium, size: 12))
-        .foregroundColor(Color.B_20)
-
+      if isCctv == true {
+        Text("사용자님의 3가지 상태를 측정해요!")
+          .font(.spoqaHanSansNeo(type: .medium, size: 12))
+          .foregroundColor(Color.B_20)
+      } else {
+        Text("여러 논문을 기반으로 적용된 상세 기준을 설명드릴게요")
+          .font(.spoqaHanSansNeo(type: .medium, size: 12))
+          .foregroundColor(Color.B_20)
+      }
+      Spacer()
+        .frame(height: 1)
+      
       Rectangle()
         .frame(height: 1)
         .foregroundColor(Color.B_40)
@@ -85,7 +98,24 @@ struct InfoSheetView: View {
         ForEach(Array(data.items.enumerated()), id: \.offset) { index, item in
           infoItemView(item: item)
         }
+        
+        if isCctv == true {
+          VStack(alignment: .leading, spacing: 12) {
+            Text("왜 필요할까요?")
+              .font(.spoqaHanSansNeo(type: .bold, size: 20))
+              .foregroundColor(.black)
+            
+            Rectangle()
+              .frame(height: 1)
+              .foregroundColor(Color.B_40)
+
+            Text(attributedDescription(cctvDescription, keywords: cctvHighlightedKeywords))
+              .font(.FontSystem.b1)
+          }
+          .padding(.top, 20)
+        }
       }
+      .padding(.top, 9)
       Spacer()
     }
     .padding(.top, 24)
@@ -141,9 +171,9 @@ struct InfoSheetView: View {
   }
 }
 
-#Preview {
-  InfoSheetView(isPresented: .constant(true), data: .coreScore)
-}
+//#Preview {
+//  InfoSheetView(isPresented: .constant(true), data: .coreScore, isCctv: false)
+//}
 
 //#Preview {
 //  InfoSheetView(isPresented: .constant(true), data: .auxScore)
