@@ -1,4 +1,3 @@
-
 //
 //  HistoryView.swift
 //  Pision
@@ -25,87 +24,11 @@ struct HistoryView: View {
     }
   }
   
-  // 세션 단위로 그룹핑 (2분 이내 연속 측정)
-  var groupedSessions: [[TaskData]] {
-    var sessions: [[TaskData]] = []
-    var currentGroup: [TaskData] = []
-    let sorted = filteredTasks.sorted { $0.startTime < $1.startTime }
-    
-    for task in sorted {
-      if let last = currentGroup.last {
-        if task.startTime.timeIntervalSince(last.endTime) <= 120 {
-          currentGroup.append(task)
-        } else {
-          sessions.append(currentGroup)
-          currentGroup = [task]
-        }
-      } else {
-        currentGroup.append(task)
-      }
-    }
-    if !currentGroup.isEmpty {
-      sessions.append(currentGroup)
-    }
-    return sessions
-  }
-  
-  func summarizeSessions(_ sessions: [[TaskData]]) -> (totalFocus: Int, totalDuration: Int, sessionCount: Int) {
-    var totalFocus = 0
-    var totalDuration = 0
-    var count = 0
-    
-    for session in sessions {
-      guard let first = session.first, let last = session.last else { continue }
-      let duration = Int(last.endTime.timeIntervalSince(first.startTime))
-      totalDuration += duration
-      count += 1
-      
-      // session 내부 집중률 평균 구함
-      let totalFocusValue = session.reduce(0) { $0 + $1.focusTime }
-      let totalDurationValue = session.reduce(0) { $0 + $1.durationTime }
-      let focusRatio = totalDurationValue == 0 ? 0.0 : Double(totalFocusValue) / Double(totalDurationValue)
-      let estimatedFocus = Int(Double(duration) * focusRatio)
-      
-      totalFocus += estimatedFocus
-    }
-    
-    return (totalFocus, totalDuration, count)
-  }
-  
   var dailySummary: (avgFocus: Int, totalFocus: Int, totalDuration: Int, sessionCount: Int) {
-    let (focus, duration, count) = summarizeSessions(groupedSessions)
-    let avg = duration == 0 ? 0 : Int(Double(focus) / Double(duration) * 100)
-    return (avg, focus, duration, count)
-  }
-  
-  func mergeSession(_ group: [TaskData]) -> TaskData? {
-    guard let first = group.first, let last = group.last else { return nil }
-    
-    let totalDuration = Int(last.endTime.timeIntervalSince(first.startTime))
-    
-    // 평균 집중률 비율 기반으로 실제 session duration에 맞춰 focus 추정
-    let totalFocusValue = group.reduce(0) { $0 + $1.focusTime }
-    let totalDurationValue = group.reduce(0) { $0 + $1.durationTime }
-    let focusRatio = totalDurationValue == 0 ? 0.0 : Double(totalFocusValue) / Double(totalDurationValue)
-    let estimatedFocus = Int(Double(totalDuration) * focusRatio)
-    
-    let allFocusRatios = group.flatMap { $0.focusRatio }
-    let allCore = group.flatMap { $0.avgCoreDatas }
-    let allAux = group.flatMap { $0.avgAuxDatas }
-    
-    let averageScore = focusRatio
-    
-    return TaskData(
-      startTime: first.startTime,
-      endTime: last.endTime,
-      averageScore: Float(averageScore),
-      focusRatio: allFocusRatios,
-      focusTime: estimatedFocus,
-      durationTime: totalDuration,
-      snoozeImageDatas: [],
-      avgCoreDatas: allCore,
-      avgAuxDatas: allAux
-    )
+    let totalFocus = filteredTasks.reduce(0) { $0 + $1.focusTime }
+    let totalDuration = filteredTasks.reduce(0) { $0 + $1.durationTime }
+    let avg = totalDuration == 0 ? 0 : Int(Double(totalFocus) / Double(totalDuration) * 100)
+    return (avg, totalFocus, totalDuration, filteredTasks.count)
   }
 }
 
@@ -158,28 +81,21 @@ extension HistoryView {
                 .padding(.top)
               Spacer()
             }
-            ForEach(groupedSessions, id: \.first!.startTime) { group in
-              if let merged = mergeSession(group) {
-                Button {
-                  isNext = true
-                } label: {
-                  HistoryRowView(isNext: $isNext, task: merged) // ID 넣기 
-                }
+            ForEach(filteredTasks, id: \.startTime) { task in
+              Button {
+                isNext = true
+              } label: {
+                HistoryRowView(isNext: $isNext, task: task)
               }
             }
           }
         }
-        .onChange(of: selectedDate) { newValue in
+        .onChange(of: selectedDate) { _, newValue in
           print("선택된 날짜: \(newValue)")
         }
       }
     }
   }
-}
-
-// MARK: - Func
-extension HistoryView {
-  
 }
 
 // MARK: - 예시 데이터

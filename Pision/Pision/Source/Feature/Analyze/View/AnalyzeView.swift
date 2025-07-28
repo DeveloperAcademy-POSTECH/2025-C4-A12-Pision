@@ -10,8 +10,8 @@ import Charts
 import SwiftData
 
 struct AnalyzeView: View {
+//  @Query(sort: \TaskData.startTime, order: .reverse) var tasks: [TaskData]
   let taskData:TaskData
-  @Query(sort: \TaskData.startTime, order: .reverse) var tasks: [TaskData]
 }
 
 extension AnalyzeView {
@@ -23,13 +23,16 @@ extension AnalyzeView {
       
       VStack {
         CustomNavigationbar(title: "집중 분석")
+//        ScrollView {
+//          if let taskData = tasks.first { // 일단 지금은 저장된 tasks 중에서 맨 첫번째 시간의 task를 가져옴.
+//            AnalyzeBodyView(taskData: taskData)
+//          } else {
+//            Text("아직 테스크가 없습니다.")
+//              .foregroundColor(.gray)
+//          }
+//        }
         ScrollView {
-          if let taskData = tasks.first { // 일단 지금은 저장된 tasks 중에서 맨 첫번째 시간의 task를 가져옴.
-            AnalyzeBodyView(taskData: taskData)
-          } else {
-            Text("아직 테스크가 없습니다.")
-              .foregroundColor(.gray)
-          }
+          AnalyzeBodyView(taskData: taskData)
         }
       }
     }

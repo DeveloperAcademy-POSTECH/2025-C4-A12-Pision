@@ -73,7 +73,7 @@ extension HistoryRowView {
     .padding(.horizontal)
     .navigationDestination(
       isPresented: $isNext) {
-        AnalyzeView()
+        AnalyzeView(taskData: task)
       }
   }
 }
