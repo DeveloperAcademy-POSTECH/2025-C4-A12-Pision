@@ -18,9 +18,9 @@ struct GuidingPoseCaptionView: View {
   
   var body: some View {
     VStack {
-      Image(item.image)
+      Image(.guideP202)
         .resizable()
-        .frame(width: 100, height: 110)
+        .frame(width: 112, height: 128)
     }
     
     HStack(spacing: 0) {

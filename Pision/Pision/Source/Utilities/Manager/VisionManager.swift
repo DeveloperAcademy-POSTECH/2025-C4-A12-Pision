@@ -21,21 +21,24 @@ final class VisionManager: ObservableObject {
   @Published private(set) var shoulderPoints: (left: CGPoint, right: CGPoint)? = nil
   @Published private(set) var faceRectangle: [CGRect] = []
   @Published private(set) var mlPredictions: [String] = []
-  @Published private(set) var isSnoozeDetected: Bool = false
   @Published private(set) var blinkCount: Int = 0
+  @Published private(set) var isFistHeld: Bool = false
   
   var onSnoozeDetected: ((Bool) -> Void)?
+  var onFistDetected: (() -> Void)?
   
   // General var
   private let sequenceHandler = VNSequenceRequestHandler()
   private let faceRequest = VNDetectFaceLandmarksRequest()
   private let poseRequest = VNDetectHumanBodyPoseRequest()
+  private let handRequest = VNDetectHumanHandPoseRequest()
   
   // Manager
   private let mlManager = MLManager()!
   private let scoreManager = ScoreManager()
   
   private var isBlink: Bool = false
+  private var firstWorkItem: DispatchWorkItem?
 }
 
 // MARK: - General Func
@@ -75,7 +78,6 @@ extension VisionManager {
           let rightEAR = calculateEAR(rightEye)
           let avgEAR = (leftEAR + rightEAR) / 2.0
           ears.append(avgEAR)
-          print(avgEAR, "Measure")
           countBlink(leftEAR: CGFloat(leftEAR), rightEAR: CGFloat(rightEAR))
         }
       }
@@ -94,7 +96,6 @@ extension VisionManager {
       for face in results {
         if let yaw = face.yaw?.floatValue {
           let absYaw = abs(yaw)
-          print(absYaw, "Guiding")
           DispatchQueue.main.async {
             self.latestYaw = absYaw
           }
@@ -118,7 +119,6 @@ extension VisionManager {
         self.mlPredictions.append(label)
         
         let lastEAR = self.ears.last ?? 1.0
-        print(lastEAR, "Measure")
         let isSnooze = (label == "Snooze" && lastEAR < 0.1)
         self.onSnoozeDetected?(isSnooze)
       }
@@ -145,12 +145,26 @@ extension VisionManager {
       let points = (left: CGPoint(x: left.x, y: left.y),
                     right: CGPoint(x: right.x, y: right.y))
       
-      print(points, "guiding")
       DispatchQueue.main.async {
         self.shoulderPoints = points
       }
     } catch {
       print("Body Pose 처리 실패")
+    }
+  }
+  
+  func processHandPose(pixelBuffer: CVPixelBuffer) {
+    do {
+      try sequenceHandler.perform([handRequest], on: pixelBuffer)
+      guard let first = handRequest.results?.first else { return }
+      
+      let label = mlManager.handPosePredict2(from: first).label
+      let confidence = mlManager.handPosePredict2(from: first).confidence
+      DispatchQueue.main.async {
+        self.startFistTimer(label: label, confidence: confidence)
+      }
+    } catch {
+      print("Hand Pose 처리 실패")
     }
   }
 }
@@ -187,5 +201,25 @@ extension VisionManager {
         isBlink = false
       }
     }
+  }
+  
+  private func startFistTimer(label: String, confidence: Double) {
+    if label == "Fist" && confidence > 0.8 {
+      if self.firstWorkItem == nil {
+        let work = DispatchWorkItem { [weak self] in
+          self?.onFistDetected?()
+        }
+        self.firstWorkItem = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: work)
+      }
+    } else {
+      self.resetFistTimer()
+    }
+  }
+  
+  private func resetFistTimer() {
+    firstWorkItem?.cancel()
+    firstWorkItem = nil
+    isFistHeld = false
   }
 }

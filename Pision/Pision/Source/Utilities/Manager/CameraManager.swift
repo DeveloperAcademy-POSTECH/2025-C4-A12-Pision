@@ -171,6 +171,7 @@ extension CameraManager: AVCaptureVideoDataOutputSampleBufferDelegate {
     if isGuiding {
       visionManager.processGuidingBodyPose(pixelBuffer: pixelBuffer)
       visionManager.processGuidingFaceLandMark(pixelBuffer: pixelBuffer)
+      visionManager.processHandPose(pixelBuffer: pixelBuffer)
     }
   }
 }

@@ -5,20 +5,16 @@
 //  Created by 여성일 on 7/24/25.
 //
 
-enum GuidingPoseCaptionItems: String, CaseIterable {
-  case startPose = "guideP201"
-  case stopPose = "guideP202"
-  
-  var image: String {
-    rawValue
-  }
+enum GuidingPoseCaptionItems: CaseIterable {
+  case startPose
+  case stopPose
   
   var boldCaption: String {
     switch self {
     case .startPose:
-      return "손을 펴는 동작"
+      return "주먹을 쥐는 동작"
     case .stopPose:
-      return "주먹을 쥐면"
+      return "위와 같은 동작"
     }
   }
   
@@ -27,7 +23,7 @@ enum GuidingPoseCaptionItems: String, CaseIterable {
     case .startPose:
       "으로 바로 측정을 시작할 수 있어요."
     case .stopPose:
-      " 언제든 측정을 종료할 수 있어요."
+      "으로 언제든 측정을 종료할 수 있어요."
     }
   }
 }

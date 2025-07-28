@@ -38,7 +38,6 @@ final class MeasureViewModel: ObservableObject {
   @Published private(set) var isNext: Bool = false
   @Published private(set) var isGuidingAngle: Bool = false
   @Published private(set) var isGuidingPose: Bool = false
-  @Published private(set) var isGuidingComplete: Bool = false
   @Published private(set) var isPresentedStartModal: Bool = false
   @Published private(set) var showCountdown = false
   private var guidingTimer: Timer?
@@ -87,6 +86,7 @@ final class MeasureViewModel: ObservableObject {
     cameraManager.requestAndCheckPermissions()
     
     bindTimer()
+    bindGuiding()
     
     visionManager.onSnoozeDetected = { [weak self] detected in
       guard detected else { return }
@@ -127,7 +127,6 @@ extension MeasureViewModel {
     timerManager.onAutoDim = { [weak self] in
       guard let self = self else { return }
       DispatchQueue.main.async {
-        print("호출")
         self.isShouldDimScreen = true
       }
     }
@@ -169,22 +168,25 @@ extension MeasureViewModel {
 
 // MARK: - Guiding
 extension MeasureViewModel {
+  private func bindGuiding() {
+    visionManager.onFistDetected = { [weak self] in
+      guard let self = self else { return }
+      
+      if isPresentedStartModal {
+        self.guidingFinish()
+      }
+    }
+  }
+  
   func guidingStart(screenWidth: CGFloat) {
     cameraManager.startGuiding()
     checkYaw(screenWidth: screenWidth)
-    
-    Publishers.CombineLatest($isGuidingAngle, $isGuidingPose)
-      .map { $0 && $1 }
-      .removeDuplicates()
-      .receive(on: DispatchQueue.main)
-      .assign(to: &$isGuidingComplete)
   }
   
   func guidingFinish() {
     cameraManager.stopGuiding()
     isPresentedStartModal = false
     showCountdown = true
-    //isNext = true
   }
   
   func checkGuidingStatus() {
