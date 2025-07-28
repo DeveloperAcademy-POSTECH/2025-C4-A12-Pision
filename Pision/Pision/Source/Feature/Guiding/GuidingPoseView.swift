@@ -9,7 +9,7 @@ import SwiftUI
 
 // MARK: - Var
 struct GuidingPoseView: View {
-  @State private var isNavigate: Bool = false
+  @EnvironmentObject private var coordinator: Coordinator
 }
 
 // MARK: - View
@@ -26,9 +26,6 @@ extension GuidingPoseView {
       }
     }
     .navigationBarBackButtonHidden()
-    .navigationDestination(isPresented: $isNavigate) {
-      MeasureView()
-    }
   }
   
   private var GuidePoseContentView: some View {
@@ -53,7 +50,7 @@ extension GuidingPoseView {
       
       GuidingButtonView(
         title: "확인했어요",
-        action: { processNavigation() }
+        action: { coordinator.push(.measure) }
       )
       .padding(.bottom, 32)
       .padding(.horizontal, 21)
@@ -62,12 +59,6 @@ extension GuidingPoseView {
     .frame(maxWidth: 353, maxHeight: 671)
     .background(.W_00)
     .clipShape(RoundedRectangle(cornerRadius: 15.27))
-  }
-}
-
-extension GuidingPoseView {
-  private func processNavigation() {
-    isNavigate = true
   }
 }
 
