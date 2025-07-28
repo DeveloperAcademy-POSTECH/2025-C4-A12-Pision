@@ -9,7 +9,7 @@ import SwiftUI
 
 // MARK: - Var
 struct GuidingCameraView: View {
-  @State private var isNavigate: Bool = false
+  @EnvironmentObject private var coordinator: Coordinator
 }
 
 // MARK: - View
@@ -26,9 +26,6 @@ extension GuidingCameraView {
       }
     }
     .navigationBarBackButtonHidden()
-    .navigationDestination(isPresented: $isNavigate) {
-      GuidingPoseView()
-    }
   }
   
   private var GuideCameraContentView: some View {
@@ -67,7 +64,7 @@ extension GuidingCameraView {
       
       GuidingButtonView(
         title: "다 음",
-        action: { processNavigation() }
+        action: { coordinator.push(.guidingPose) }
       )
       .padding(.bottom, 32)
       .padding(.horizontal, 21)
@@ -76,12 +73,6 @@ extension GuidingCameraView {
     .frame(maxWidth: 353, maxHeight: 671)
     .background(.W_00)
     .clipShape(RoundedRectangle(cornerRadius: 15.27))
-  }
-}
-
-extension GuidingCameraView {
-  private func processNavigation() {
-    isNavigate = true
   }
 }
 

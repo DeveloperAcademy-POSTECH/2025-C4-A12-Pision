@@ -10,6 +10,8 @@ import SwiftUI
 
 @main
 struct PisionApp: App {
+  @StateObject private var coordinator = Coordinator()
+  
   var modelContainer: ModelContainer = {
     let schema = Schema([
       TaskData.self,
@@ -28,9 +30,11 @@ struct PisionApp: App {
   
   var body: some Scene {
     WindowGroup {
-      NavigationStack {
-        LoadingView()
-      }
+//      NavigationStack {
+//        MainView()
+//      }
+      RootView()
+        .environmentObject(coordinator)
     }
     .modelContainer(modelContainer)
   }

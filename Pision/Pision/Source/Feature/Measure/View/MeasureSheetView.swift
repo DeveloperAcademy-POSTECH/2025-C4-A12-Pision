@@ -68,16 +68,18 @@ extension MeasureSheetView {
         .foregroundStyle(.B_10)
       
       Button {
-        viewModel.timerStop(context: context) { result in
-          switch result {
-          case .success:
-            print("성공")
-          case .failed:
-            print("실패")
-          case .skippedLessThan10Minutes:
-            print("10분 미만")
-          }
-        }
+        viewModel.showModal()
+//        viewModel.timerStop(context: context) { result in
+//          switch result {
+//          case .success:
+//            print("성공")
+//            viewModel.timerStop2()
+//          case .failed:
+//            print("실패")
+//          case .skippedLessThan10Minutes:
+//            print("10분 미만")
+//          }
+//        }
       } label: {
         Image(.btStop)
           .resizable()

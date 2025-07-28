@@ -17,7 +17,6 @@ final class SwiftDataManager {
   func saveTaskDataToSwiftData(
     context: ModelContext,
     taskData: TaskDataModel,
-    completion: @escaping (Bool) -> Void
   ) {
     let coreModels = taskData.avgCoreDatas.map {
       AvgCoreScore(
@@ -55,10 +54,8 @@ final class SwiftDataManager {
     do {
       try context.save()
       print("✅ SwiftData 저장 성공")
-      completion(true)
     } catch {
       print("❌ SwiftData 저장 실패: \(error)")
-      completion(false)
     }
   }
   

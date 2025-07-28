@@ -58,14 +58,16 @@ final class MeasureViewModel: ObservableObject {
   
   // MARK: - Measure Var
   @Published private(set) var currentFocusRatio: Float = 0.0
+  @Published var finishModal: MeasureFinishModalItems? = nil
   private var coreScoreHistory: [CoreScoreModel] = []
   private var auxScoreHistory: [AuxScoreModel] = []
   private var coreScoreHistory10Minute: [AvgCoreScoreModel] = []
   private var auxScoreHistory10Minute: [AvgAuxScoreModel] = []
-  private var taskData: TaskDataModel?
+  @Published private(set) var taskData: TaskDataModel?
   private var focusTime: Int = 0
   private var focusRatios: [Float] = []
   private var snoozeImageDatas: [Data] = []
+  
 
   // MARK: - General
   // Manager
@@ -121,6 +123,16 @@ extension MeasureViewModel {
       guard let self = self else { return }
       DispatchQueue.main.async {
         self.secondsElapsed = sec
+        
+        if sec % 30 == 0 {
+          self.calculateScores()
+        }
+        
+        if sec % 600 == 0 {
+          DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.save10MinuteAverage()
+          }
+        }
       }
     }
     
@@ -153,13 +165,22 @@ extension MeasureViewModel {
     cameraManager.startMeasuring()
   }
   
-  func timerStop(context: ModelContext, completion: @escaping (SaveResult) -> Void) {
+  func timerStop() {
     timerManager.timerStop()
     timerState = .stopped
     timerManager.cancelAutoDim()
     cameraManager.stopMeasuring()
   }
-   
+  
+  func saveData(context: ModelContext) {
+    saveTaskDataAndSaveToSwiftData(context: context)
+  }
+  
+  func showModal() {
+    timerPause()
+    finishModal = secondsElapsed < 5 ? .tooShort : .longEnough
+  }
+  
   func resetAutoDim() {
     timerManager.resetAutoDim()
     isShouldDimScreen = false
@@ -298,12 +319,7 @@ extension MeasureViewModel {
     focusRatios.append(ratio)
   }
   
-  private func saveTaskDataAndSaveToSwiftData(context: ModelContext, completion: @escaping (SaveResult) -> Void) {
-    if secondsElapsed < 600 {
-      completion(.skippedLessThan10Minutes)
-      return
-    }
-    
+  private func saveTaskDataAndSaveToSwiftData(context: ModelContext) {
     let avgScore = (Float(focusTime) / Float(secondsElapsed)) * 100
     let data = TaskDataModel(
       startTime: Date().addingTimeInterval(-TimeInterval(secondsElapsed)),
@@ -319,16 +335,9 @@ extension MeasureViewModel {
     self.taskData = data
     
     guard let taskData = self.taskData else {
-      completion(.failed)
       return
     }
     
-    swiftDataManager.saveTaskDataToSwiftData(context: context, taskData: taskData) { isSuccess in
-      if isSuccess {
-        completion(.success)
-      } else {
-        completion(.failed)
-      }
-    }
+    swiftDataManager.saveTaskDataToSwiftData(context: context, taskData: taskData)
   }
 }
