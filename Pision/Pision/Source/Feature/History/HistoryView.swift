@@ -84,8 +84,9 @@ extension HistoryView {
             ForEach(filteredTasks, id: \.startTime) { task in
               Button {
                 isNext = true
+//                print("\(task.startTime)")
               } label: {
-                HistoryRowView(isNext: $isNext, task: task)
+                HistoryRowView(task: task)
               }
             }
           }
