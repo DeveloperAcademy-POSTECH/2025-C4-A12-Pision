@@ -15,6 +15,7 @@ struct HistoryView: View {
   
   @State var selectedDate: Date = Date()
   @State var calendarMode: CalendarView.ViewMode = .daily
+  @State var isNext:Bool = false
   
   var filteredTasks: [TaskData] {
     let startOfDay = Calendar.current.startOfDay(for: selectedDate)
@@ -23,7 +24,7 @@ struct HistoryView: View {
       $0.startTime >= startOfDay && $0.startTime < endOfDay
     }
   }
-
+  
   // 세션 단위로 그룹핑 (2분 이내 연속 측정)
   var groupedSessions: [[TaskData]] {
     var sessions: [[TaskData]] = []
@@ -47,64 +48,64 @@ struct HistoryView: View {
     }
     return sessions
   }
-
+  
   func summarizeSessions(_ sessions: [[TaskData]]) -> (totalFocus: Int, totalDuration: Int, sessionCount: Int) {
-      var totalFocus = 0
-      var totalDuration = 0
-      var count = 0
-
-      for session in sessions {
-          guard let first = session.first, let last = session.last else { continue }
-          let duration = Int(last.endTime.timeIntervalSince(first.startTime))
-          totalDuration += duration
-          count += 1
-
-          // session 내부 집중률 평균 구함
-          let totalFocusValue = session.reduce(0) { $0 + $1.focusTime }
-          let totalDurationValue = session.reduce(0) { $0 + $1.durationTime }
-          let focusRatio = totalDurationValue == 0 ? 0.0 : Double(totalFocusValue) / Double(totalDurationValue)
-          let estimatedFocus = Int(Double(duration) * focusRatio)
-
-          totalFocus += estimatedFocus
-      }
-
-      return (totalFocus, totalDuration, count)
+    var totalFocus = 0
+    var totalDuration = 0
+    var count = 0
+    
+    for session in sessions {
+      guard let first = session.first, let last = session.last else { continue }
+      let duration = Int(last.endTime.timeIntervalSince(first.startTime))
+      totalDuration += duration
+      count += 1
+      
+      // session 내부 집중률 평균 구함
+      let totalFocusValue = session.reduce(0) { $0 + $1.focusTime }
+      let totalDurationValue = session.reduce(0) { $0 + $1.durationTime }
+      let focusRatio = totalDurationValue == 0 ? 0.0 : Double(totalFocusValue) / Double(totalDurationValue)
+      let estimatedFocus = Int(Double(duration) * focusRatio)
+      
+      totalFocus += estimatedFocus
+    }
+    
+    return (totalFocus, totalDuration, count)
   }
-
+  
   var dailySummary: (avgFocus: Int, totalFocus: Int, totalDuration: Int, sessionCount: Int) {
-      let (focus, duration, count) = summarizeSessions(groupedSessions)
-      let avg = duration == 0 ? 0 : Int(Double(focus) / Double(duration) * 100)
-      return (avg, focus, duration, count)
+    let (focus, duration, count) = summarizeSessions(groupedSessions)
+    let avg = duration == 0 ? 0 : Int(Double(focus) / Double(duration) * 100)
+    return (avg, focus, duration, count)
   }
   
   func mergeSession(_ group: [TaskData]) -> TaskData? {
-      guard let first = group.first, let last = group.last else { return nil }
-
-      let totalDuration = Int(last.endTime.timeIntervalSince(first.startTime))
-
-      // 평균 집중률 비율 기반으로 실제 session duration에 맞춰 focus 추정
-      let totalFocusValue = group.reduce(0) { $0 + $1.focusTime }
-      let totalDurationValue = group.reduce(0) { $0 + $1.durationTime }
-      let focusRatio = totalDurationValue == 0 ? 0.0 : Double(totalFocusValue) / Double(totalDurationValue)
-      let estimatedFocus = Int(Double(totalDuration) * focusRatio)
-
-      let allFocusRatios = group.flatMap { $0.focusRatio }
-      let allCore = group.flatMap { $0.avgCoreDatas }
-      let allAux = group.flatMap { $0.avgAuxDatas }
-
-      let averageScore = focusRatio
-
-      return TaskData(
-          startTime: first.startTime,
-          endTime: last.endTime,
-          averageScore: Float(averageScore),
-          focusRatio: allFocusRatios,
-          focusTime: estimatedFocus,
-          durationTime: totalDuration,
-          snoozeImageDatas: [],
-          avgCoreDatas: allCore,
-          avgAuxDatas: allAux
-      )
+    guard let first = group.first, let last = group.last else { return nil }
+    
+    let totalDuration = Int(last.endTime.timeIntervalSince(first.startTime))
+    
+    // 평균 집중률 비율 기반으로 실제 session duration에 맞춰 focus 추정
+    let totalFocusValue = group.reduce(0) { $0 + $1.focusTime }
+    let totalDurationValue = group.reduce(0) { $0 + $1.durationTime }
+    let focusRatio = totalDurationValue == 0 ? 0.0 : Double(totalFocusValue) / Double(totalDurationValue)
+    let estimatedFocus = Int(Double(totalDuration) * focusRatio)
+    
+    let allFocusRatios = group.flatMap { $0.focusRatio }
+    let allCore = group.flatMap { $0.avgCoreDatas }
+    let allAux = group.flatMap { $0.avgAuxDatas }
+    
+    let averageScore = focusRatio
+    
+    return TaskData(
+      startTime: first.startTime,
+      endTime: last.endTime,
+      averageScore: Float(averageScore),
+      focusRatio: allFocusRatios,
+      focusTime: estimatedFocus,
+      durationTime: totalDuration,
+      snoozeImageDatas: [],
+      avgCoreDatas: allCore,
+      avgAuxDatas: allAux
+    )
   }
 }
 
@@ -159,7 +160,11 @@ extension HistoryView {
             }
             ForEach(groupedSessions, id: \.first!.startTime) { group in
               if let merged = mergeSession(group) {
-                HistoryRowView(task: merged)
+                Button {
+                  isNext = true
+                } label: {
+                  HistoryRowView(isNext: $isNext, task: merged) // ID 넣기 
+                }
               }
             }
           }
