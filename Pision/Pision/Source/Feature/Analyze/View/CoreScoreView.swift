@@ -10,6 +10,7 @@ import SwiftData
 
 struct CoreScoreView: View {
   @StateObject var viewModel: CoreScoreViewModel
+  @State private var showInfoSheet = false
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
@@ -18,6 +19,9 @@ struct CoreScoreView: View {
       }) {
         contentView
       }
+    }
+    .sheet(isPresented: $showInfoSheet) {
+      InfoSheetView(isPresented: $showInfoSheet, data: .coreScore, isCctv: false)
     }
   }
 
@@ -41,7 +45,12 @@ struct CoreScoreView: View {
           Text("CoreScore")
             .font(.FontSystem.h4)
             .foregroundColor(Color.B_00)
-          Image("info")
+          
+          Button(action: {
+            showInfoSheet = true
+          }) {
+            Image("info")
+          }
         }
         Text("실시간 정보로 집중도를 파악해요")
           .font(.FontSystem.btn)
@@ -50,8 +59,8 @@ struct CoreScoreView: View {
 
       Spacer()
 
-      HStack(spacing: 16) {
-        Text("\(viewModel.averageScoreText)점")
+      HStack(spacing: 8) {
+        Text("\(viewModel.averageScoreText)%")
           .font(.spoqaHanSansNeo(type: .bold, size: 28))
           .foregroundColor(Color.BR_00)
 
@@ -62,11 +71,14 @@ struct CoreScoreView: View {
 
   private var chartSectionView: some View {
     VStack(alignment: .leading, spacing: 20) {
-      HStack(spacing: 0) {
-        yAxisLabels
-        coreScoreChartWithLabels
+      ZStack {
+        HStack(spacing: 0) {
+          yAxisLabels
+          coreScoreChartWithLabels
+        }
+        
+        FadeOutOverlay()
       }
-
       coreScoreChartLegend
     }
   }
@@ -207,16 +219,12 @@ struct CoreScoreView: View {
             let x = CGFloat((index) * stepX + 10)
             let y = height - CGFloat(point / 100.0) * height
             
-            // 각 포인트별 상세 정보
-            print("Point \(index): value=\(point), x=\(x), y=\(y)")
-            
             if index == 0 {
               path.move(to: CGPoint(x: x, y: y))
             } else {
               path.addLine(to: CGPoint(x: x, y: y))
             }
           }
-          print("========================")
         }
         .stroke(color, lineWidth: 1)
       }
@@ -293,17 +301,17 @@ struct CoreScoreView: View {
   }
 }
 
-//#Preview {
-//  let container = try! ModelContainer(
-//    for: TaskData.self,
-//    configurations: ModelConfiguration(isStoredInMemoryOnly: true)
-//  )
-//
-//  let context = container.mainContext
-//  context.insert(TaskData.mock)
-//
-//  return CoreScoreView(viewModel: CoreScoreViewModel(taskData: TaskData.mock))
-//    .modelContainer(container)
-//    .padding()
-//    .background(Color.gray.opacity(0.1))
-//}
+#Preview {
+  let container = try! ModelContainer(
+    for: TaskData.self,
+    configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+  )
+
+  let context = container.mainContext
+  context.insert(TaskData.mock)
+
+  return CoreScoreView(viewModel: CoreScoreViewModel(taskData: TaskData.mock))
+    .modelContainer(container)
+    .padding()
+    .background(Color.gray.opacity(0.1))
+}

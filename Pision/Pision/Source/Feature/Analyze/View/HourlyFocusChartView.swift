@@ -11,7 +11,7 @@ import SwiftData
 // MARK: - 시간별 집중도 바 차트 뷰
 extension AnalyzeView {
   struct HourlyFocusChartView: View {
-    @State private var selectedBarIndex: Int? = nil // 선택된 막대 인덱스
+    @State private var selectedBarIndex: Int? = 0 // 선택된 막대 인덱스
     
     let taskData: TaskData
 
@@ -29,6 +29,9 @@ extension AnalyzeView {
               yAxisLabels
               focusChartWithLabels
             }
+              
+            FadeOutOverlay()
+            
             averageLineForFullChart // 평균선 오버레이
               .padding(.bottom, 5)
           }

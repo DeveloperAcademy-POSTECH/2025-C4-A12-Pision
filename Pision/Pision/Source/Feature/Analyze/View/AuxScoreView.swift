@@ -10,6 +10,7 @@ import SwiftData
 
 struct AuxScoreView: View {
   @StateObject var viewModel: AuxScoreViewModel
+  @State private var showInfoSheet = false
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
@@ -19,6 +20,9 @@ struct AuxScoreView: View {
         contentView
       }
       .buttonStyle(PlainButtonStyle())
+    }
+    .sheet(isPresented: $showInfoSheet) {
+      InfoSheetView(isPresented: $showInfoSheet, data: .auxScore, isCctv: false)
     }
   }
 
@@ -42,7 +46,11 @@ struct AuxScoreView: View {
           Text("AuxScore")
             .font(.FontSystem.h4)
             .foregroundColor(Color.B_00)
-          Image("info")
+          Button(action: {
+            showInfoSheet = true
+          }) {
+            Image("info")
+          }
         }
         Text("세부적인 정보로 집중도를 파악해요")
           .font(.FontSystem.btn)
@@ -63,11 +71,13 @@ struct AuxScoreView: View {
 
   private var chartSectionView: some View {
     VStack(alignment: .leading, spacing: 20) {
-      HStack(spacing: 0) {
-        yAxisLabels
-        auxScoreChartWithLabels
+      ZStack {
+        HStack(spacing: 0) {
+          yAxisLabels
+          auxScoreChartWithLabels
+        }
+        FadeOutOverlay()
       }
-
       auxScoreChartLegend
     }
   }
@@ -200,16 +210,12 @@ struct AuxScoreView: View {
             let x = CGFloat((index) * stepX + 10)
             let y = height - CGFloat(point / 100.0) * height
             
-            // 각 포인트별 상세 정보
-            print("Point \(index): value=\(point), x=\(x), y=\(y)")
-            
             if index == 0 {
               path.move(to: CGPoint(x: x, y: y))
             } else {
               path.addLine(to: CGPoint(x: x, y: y))
             }
           }
-          print("========================")
         }
         .stroke(color, lineWidth: 1)
       }

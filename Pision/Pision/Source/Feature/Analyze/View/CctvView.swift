@@ -10,6 +10,7 @@ import SwiftData
 
 struct CctvView: View {
   @StateObject var viewModel: CctvViewModel
+  @State private var showInfoSheet = false
   
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
@@ -19,6 +20,9 @@ struct CctvView: View {
         contentView
       }
       .buttonStyle(PlainButtonStyle())
+      .sheet(isPresented: $showInfoSheet) {
+        InfoSheetView(isPresented: $showInfoSheet, data: .cctv, isCctv: true)
+      }
     }
   }
   
@@ -42,7 +46,12 @@ struct CctvView: View {
           Text("순간포착")
             .font(.FontSystem.h4)
             .foregroundColor(Color.B_00)
-          Image("info")
+          
+          Button(action: {
+            showInfoSheet = true
+          }) {
+            Image("info")
+          }
         }
         Text("집중력을 잃은 찰나의 순간을 포착해요")
           .font(.FontSystem.btn)
@@ -69,9 +78,10 @@ struct CctvView: View {
             }
           }
         }
+        FadeOutOverlay()
       } else {
         Text("포착된 순간이 없습니다")
-          .foregroundColor(.gray)
+          .foregroundColor(.B_30)
           .padding()
       }
     }
