@@ -66,7 +66,16 @@ extension FixedOverListView {
       }.padding()
     }
     .padding(10)
-    .background(RoundedRectangle(cornerRadius: 12).fill(Color.white))
+    .background(
+      ZStack{
+        RoundedRectangle(cornerRadius: 12).fill(Color.white)
+        Image("HistorycardBG")
+          .resizable()
+          .scaledToFill()
+          .clipped()
+      }
+    )
+    .clipShape(RoundedRectangle(cornerRadius: 12)) 
     .padding(.horizontal)
   }
 }
