@@ -29,7 +29,7 @@ struct PisionApp: App {
   var body: some Scene {
     WindowGroup {
       NavigationStack {
-        MainView()
+        LoadingView()
       }
     }
     .modelContainer(modelContainer)

@@ -10,6 +10,7 @@ import Charts
 import SwiftData
 
 struct AnalyzeView: View {
+  let taskData:TaskData
   @Query(sort: \TaskData.startTime, order: .reverse) var tasks: [TaskData]
 }
 
