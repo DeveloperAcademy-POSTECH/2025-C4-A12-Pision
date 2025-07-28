@@ -10,11 +10,11 @@ import SwiftData
 
 struct HomeView: View {
   @Query private var todayTasks: [TaskData]
-
+  
   init() {
     let startOfToday = Calendar.current.startOfDay(for: Date())
     let endOfToday = Calendar.current.date(byAdding: .day, value: 1, to: startOfToday)!
-
+    
     _todayTasks = Query(
       filter: #Predicate<TaskData> {
         $0.startTime >= startOfToday && $0.startTime < endOfToday
@@ -22,11 +22,11 @@ struct HomeView: View {
       sort: [SortDescriptor(\.startTime, order: .reverse)]
     )
   }
-
+  
   var totalFocusTime: Int {
     todayTasks.map { $0.focusTime }.reduce(0, +)
   }
-
+  
   var body: some View {
     ZStack {
       Image("background")
@@ -51,37 +51,37 @@ struct HomeView: View {
         .padding(.leading)
         .padding(.trailing)
         VStack{
-
+          
           Text("오늘 집중 시간은")
             .font(.FontSystem.h1)
             .foregroundStyle(.BR_00)
-
+          
           Text("\(secondsToHourMinute(correctedFocusTimeToday)) 이에요")
             .font(.FontSystem.h1)
             .foregroundStyle(.BR_00)
-            
-
-          Text("조금 더 집중할 수 있는 환경을\n만들어 보아요!")
+          
+          
+          Text("조금 더 집중할 수 있는 환경을")
+            .font(.FontSystem.b1)
+            .multilineTextAlignment(.center)
+            .foregroundStyle(.BR_00)
+          
+          Text("만들어 보아요!")
             .font(.FontSystem.b1)
             .multilineTextAlignment(.center)
             .foregroundStyle(.BR_00)
         }
         
-        Spacer()
         VStack{
-            Image(systemName: "pause.circle.fill") // 임시 이미지
-              .resizable()
-              .frame(width: 180, height: 180)
-              .foregroundStyle(.blue)
+          LottieView(animation:"zipzoongi")
+            .frame(width: 300, height: 300)
         }
-        Spacer()
-
         VStack(alignment: .leading) {
           Text("최근 측정")
             .font(.FontSystem.h3)
             .foregroundStyle(.B_00)
             .padding(.horizontal)
-
+          
           if let latestTask = todayTasks.first {
             HomeRowView(task: latestTask)
               .frame(height: 140) // HomeRowView의 고정 예상 높이
@@ -99,10 +99,11 @@ struct HomeView: View {
         Spacer()
         Spacer()
         Spacer()
+        Spacer()
       }
     }
   }
-
+  
   // MARK: - Helper
   func secondsToHourMinute(_ seconds: Int) -> String {
     let hours = seconds / 3600
@@ -115,14 +116,14 @@ struct HomeView: View {
     let startOfDay = Calendar.current.startOfDay(for: Date())
     let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay)!
     let filtered = todayTasks.filter { $0.startTime >= startOfDay && $0.startTime < endOfDay }
-
+    
     // 2. TaskData들을 시작 순으로 정렬
     let sorted = filtered.sorted { $0.startTime < $1.startTime }
-
+    
     // 3. 세션 단위로 그룹핑 (2분 이내 연결)
     var sessions: [[TaskData]] = []
     var currentSession: [TaskData] = []
-
+    
     for task in sorted {
       if let last = currentSession.last {
         if task.startTime.timeIntervalSince(last.endTime) <= 120 {
@@ -138,25 +139,28 @@ struct HomeView: View {
     if !currentSession.isEmpty {
       sessions.append(currentSession)
     }
-
+    
     // 4. 각 세션에 대해 focusTime 추정
     var totalFocus = 0
     for session in sessions {
       guard let first = session.first, let last = session.last else { continue }
-
+      
       let sessionDuration = Int(last.endTime.timeIntervalSince(first.startTime))
       let rawFocus = session.reduce(0) { $0 + $1.focusTime }
       let rawDuration = session.reduce(0) { $0 + $1.durationTime }
-
+      
       let ratio = rawDuration == 0 ? 0.0 : Double(rawFocus) / Double(rawDuration)
       let estimatedFocus = Int(Double(sessionDuration) * ratio)
-
+      
       totalFocus += estimatedFocus
     }
-
+    
     return totalFocus
   }
 }
+
+
+
 
 
 // MARK: - 예시 데이터
@@ -252,7 +256,7 @@ extension HomeView {
   )
   let context = container.mainContext
   context.insert(HomeView.mock)
-
+  
   return HomeView().modelContainer(container)
 }
 
