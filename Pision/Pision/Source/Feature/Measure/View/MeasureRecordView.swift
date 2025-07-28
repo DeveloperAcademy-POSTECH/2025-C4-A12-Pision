@@ -13,6 +13,7 @@ import SwiftUI
 // MARK: - Var
 struct MeasureRecordView: View {
   // ViewModel
+  @EnvironmentObject private var coordinator: Coordinator
   @ObservedObject private var viewModel: MeasureViewModel
   
   // SwiftData
@@ -69,6 +70,23 @@ extension MeasureRecordView {
     .onTapGesture {
       viewModel.resetAutoDim()
     }
+    .overlay {
+      if let modalType = viewModel.finishModal {
+        switch modalType {
+        case .longEnough:
+          MeasureFinishModal(
+            type: .longEnough,
+            leftAction: { longEnoughLeftAction() },
+            rightAcition: { longEnoughRightAction() })
+        case .tooShort:
+          MeasureFinishModal(
+            type: .tooShort,
+            leftAction: { shortLeftAction() },
+            rightAcition: { shortRightAction() }
+          )
+        }
+      }
+    }
   }
   
   private var brightnessOverlay: some View {
@@ -77,6 +95,30 @@ extension MeasureRecordView {
       .opacity(viewModel.isShouldDimScreen ? 0.85 : 0)
       .animation(.easeInOut(duration: 0.3), value: viewModel.isShouldDimScreen)
       .ignoresSafeArea()
+  }
+}
+
+
+private extension MeasureRecordView {
+  func longEnoughLeftAction() {
+    viewModel.finishModal = nil
+    viewModel.timerResume()
+  }
+  
+  func longEnoughRightAction() {
+    viewModel.timerStop()
+    viewModel.saveData(context: context)
+    coordinator.push(.loading)
+  }
+  
+  func shortLeftAction() {
+    viewModel.finishModal = nil
+    viewModel.timerResume()
+  }
+  
+  func shortRightAction() {
+    viewModel.timerStop()
+    coordinator.popToRoot()
   }
 }
 

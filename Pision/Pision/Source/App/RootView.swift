@@ -9,6 +9,11 @@ import SwiftUI
 
 struct RootView: View {
   @EnvironmentObject var coordinator: Coordinator
+  @StateObject private var measureViewModel: MeasureViewModel
+  
+  init() {
+    _measureViewModel = StateObject(wrappedValue: MeasureViewModel())
+  }
 }
 
 extension RootView {
@@ -25,6 +30,10 @@ extension RootView {
             GuidingCameraView()
           case .guidingPose:
             GuidingPoseView()
+          case .loading:
+            LoadingView()
+          case .analyze(let taskData):
+            AnalyzeView(taskData: taskData)
           }
         }
     }
