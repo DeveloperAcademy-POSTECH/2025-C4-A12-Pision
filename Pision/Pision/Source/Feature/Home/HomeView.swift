@@ -10,6 +10,7 @@ import SwiftData
 
 struct HomeView: View {
   @Query private var todayTasks: [TaskData]
+  @State var isTabed:Bool = false
   
   init() {
     let startOfToday = Calendar.current.startOfDay(for: Date())
@@ -83,8 +84,12 @@ struct HomeView: View {
             .padding(.horizontal)
           
           if let latestTask = todayTasks.first {
-            HomeRowView(task: latestTask)
-              .frame(height: 140) // HomeRowView의 고정 예상 높이
+            Button{
+              isTabed = true
+            }label:{
+              HomeRowView(isTabed:$isTabed, task: latestTask)
+                .frame(height: 140)
+            }
           } else {
             Text("아직 오늘 측정된 기록이 없어요.")
               .font(.FontSystem.b2)

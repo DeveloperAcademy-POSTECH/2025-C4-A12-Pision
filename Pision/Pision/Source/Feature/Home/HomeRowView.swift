@@ -9,6 +9,7 @@ import SwiftUI
 
 // MARK: - Var
 struct HomeRowView: View {
+  @Binding var isTabed:Bool
   let task:TaskData
   var avgFocus: Int {
     guard task.durationTime > 0 else { return 0 }
@@ -69,6 +70,9 @@ extension HomeRowView {
     .padding()
     .background(RoundedRectangle(cornerRadius: 12).fill(Color.white))
     .padding(.horizontal)
+    .navigationDestination(isPresented: $isTabed){
+      AnalyzeView(taskData: task)
+    }
   }
 }
 
@@ -88,5 +92,5 @@ extension HomeRowView{
 }
 
 #Preview {
-  HomeRowView(task: HistoryView.mock)
+  HomeRowView(isTabed:.constant(true), task: HistoryView.mock)
 }
