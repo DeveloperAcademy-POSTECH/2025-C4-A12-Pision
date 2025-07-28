@@ -54,69 +54,75 @@ struct InfoSheetView: View {
             .foregroundColor(.W_00)
           
           Text(data.description)
-            .font(.spoqaHanSansNeo(type: .medium, size: 12))
+            .font(.FontSystem.cap1)
             .foregroundColor(.W_00)
         }
-//        .background(Color.green).opacity(0.3)
-        
-        Spacer()
       }
-      .padding(.leading, 38)
+      .padding(.horizontal, 35)
       .padding(.bottom, 20)
+//      .background(Color.green).opacity(0.3)
+
     }
     .frame(height: 168)
     .background(Color.BR_00)
   }
   
   private var contentSection: some View {
-    VStack(alignment: .leading, spacing: 20) {
+    VStack(alignment: .leading, spacing: 8) {
       Text("상세 설명")
-        .font(.system(size: 20, weight: .bold))
+        .font(.spoqaHanSansNeo(type: .bold, size: 20))
         .foregroundColor(.black)
-        .padding(.horizontal, 20)
-        .padding(.top, 24)
       
       Text("여러 논문을 기반으로 적용된 상세 기준을 설명드릴게요")
-        .font(.system(size: 14))
-        .foregroundColor(.gray)
-        .padding(.horizontal, 20)
+        .font(.spoqaHanSansNeo(type: .medium, size: 12))
+        .foregroundColor(Color.B_20)
+
+      Rectangle()
+        .frame(height: 1)
+        .foregroundColor(Color.B_40)
       
-      ScrollView {
-        VStack(alignment: .leading, spacing: 20) {
-          ForEach(Array(data.items.enumerated()), id: \.offset) { index, item in
-            infoItemView(item: item)
-          }
+      VStack(alignment: .leading, spacing: 20) {
+        ForEach(Array(data.items.enumerated()), id: \.offset) { index, item in
+          infoItemView(item: item)
         }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 50)
       }
+      Spacer()
     }
-    .background(Color.white)
+    .padding(.top, 24)
+    .padding(.horizontal, 20)
+    .background(Color.W_00)
   }
   
   private func infoItemView(item: InfoItem) -> some View {
     VStack(alignment: .leading, spacing: 8) {
       HStack(spacing: 8) {
         Text(item.number)
-          .font(.system(size: 16, weight: .bold))
+          .font(.FontSystem.h4)
           .foregroundColor(.black)
         
         Text(item.title)
-          .font(.system(size: 16, weight: .bold))
+          .font(.FontSystem.h4)
           .foregroundColor(.black)
         
         if let citation = item.citation {
           Text(citation)
-            .font(.system(size: 14))
-            .foregroundColor(.gray)
+            .font(.FontSystem.btn)
+            .foregroundColor(.B_40)
         }
         
         Spacer()
       }
       
-      Text(attributedDescription(item.description, keywords: item.highlightedKeywords))
-        .font(.system(size: 14))
-        .padding(.leading, 16)
+      // 점과 설명 텍스트
+      HStack(alignment: .top, spacing: 8) {
+        Text("•")
+          .font(.FontSystem.b1)
+          .foregroundColor(.B_10)
+        
+        Text(attributedDescription(item.description, keywords: item.highlightedKeywords))
+          .font(.FontSystem.b1)
+      }
+      .padding(.leading, 16)
     }
   }
   
@@ -126,8 +132,8 @@ struct InfoSheetView: View {
     // 키워드들을 파란색으로 강조
     for keyword in keywords {
       if let range = attributedString.range(of: keyword) {
-        attributedString[range].foregroundColor = .blue
-        attributedString[range].font = .system(size: 14, weight: .medium)
+        attributedString[range].foregroundColor = .BR_00
+        attributedString[range].font = .FontSystem.b2
       }
     }
     
