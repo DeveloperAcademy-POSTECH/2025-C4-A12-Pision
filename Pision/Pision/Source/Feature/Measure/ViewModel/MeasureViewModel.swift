@@ -137,24 +137,28 @@ extension MeasureViewModel {
     timerManager.timerStart()
     timerState = .running
     timerManager.startAutoDim()
+    cameraManager.startMeasuring()
   }
   
   func timerPause() {
     guard timerState == .running else { return }
     timerManager.timerPause()
     timerState = .pause
+    cameraManager.stopMeasuring()
   }
   
   func timerResume() {
     guard timerState == .pause else { return }
     timerManager.timerResume()
     timerState = .running
+    cameraManager.startMeasuring()
   }
   
   func timerStop(context: ModelContext, completion: @escaping (SaveResult) -> Void) {
     timerManager.timerStop()
     timerState = .stopped
     timerManager.cancelAutoDim()
+    cameraManager.stopMeasuring()
   }
    
   func resetAutoDim() {
@@ -166,7 +170,7 @@ extension MeasureViewModel {
 // MARK: - Guiding
 extension MeasureViewModel {
   func guidingStart(screenWidth: CGFloat) {
-    cameraManager.startMeasuring()
+    cameraManager.startGuiding()
     checkYaw(screenWidth: screenWidth)
     
     Publishers.CombineLatest($isGuidingAngle, $isGuidingPose)
@@ -177,6 +181,7 @@ extension MeasureViewModel {
   }
   
   func guidingFinish() {
+    cameraManager.stopGuiding()
     isPresentedStartModal = false
     showCountdown = true
     //isNext = true

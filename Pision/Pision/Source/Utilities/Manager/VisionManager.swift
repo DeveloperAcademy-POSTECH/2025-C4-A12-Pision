@@ -52,7 +52,7 @@ extension VisionManager {
   /// 얼굴의 랜드마크 정보를 처리하여 고개 회전 각도(YAW), 눈 비율(EAR), 눈 깜빡임 여부를 계산합니다.
   /// Vision 프레임워크를 이용해 얼굴을 분석하고, 분석된 결과를 기반으로 내부 상태를 업데이트합니다.
   /// - Parameter pixelBuffer: 분석할 영상 프레임의 픽셀 버퍼입니다.
-  func processFaceLandMark(pixelBuffer: CVPixelBuffer) {
+  func processMeasureFaceLandMark(pixelBuffer: CVPixelBuffer) {
     do {
       try sequenceHandler.perform([faceRequest], on: pixelBuffer)
       guard let results = faceRequest.results, !results.isEmpty else {
@@ -66,11 +66,6 @@ extension VisionManager {
         if let yaw = face.yaw?.floatValue {
           let absYaw = abs(yaw)
           yaws.append(absYaw)
-          
-          DispatchQueue.main.async {
-            self.latestYaw = absYaw
-            print(absYaw)
-          }
         }
         
         if let landmarks = face.landmarks,
@@ -80,7 +75,29 @@ extension VisionManager {
           let rightEAR = calculateEAR(rightEye)
           let avgEAR = (leftEAR + rightEAR) / 2.0
           ears.append(avgEAR)
+          print(avgEAR, "Measure")
           countBlink(leftEAR: CGFloat(leftEAR), rightEAR: CGFloat(rightEAR))
+        }
+      }
+    } catch {
+      print("Face Landmark 처리 실패")
+    }
+  }
+  
+  func processGuidingFaceLandMark(pixelBuffer: CVPixelBuffer) {
+    do {
+      try sequenceHandler.perform([faceRequest], on: pixelBuffer)
+      guard let results = faceRequest.results, !results.isEmpty else {
+        return
+      }
+      
+      for face in results {
+        if let yaw = face.yaw?.floatValue {
+          let absYaw = abs(yaw)
+          print(absYaw, "Guiding")
+          DispatchQueue.main.async {
+            self.latestYaw = absYaw
+          }
         }
       }
     } catch {
@@ -91,11 +108,30 @@ extension VisionManager {
   /// 사람의 몸 자세를 분석하여 머신러닝 모델로부터 예측 결과(레이블)를 받아옵니다.
   /// Vision 프레임워크를 사용해 포즈를 추출하고, 추출된 첫 번째 결과를 ML 모델에 입력하여 동작을 분류합니다.
   /// - Parameter pixelBuffer: 분석할 영상 프레임의 픽셀 버퍼입니다.
-  func processBodyPose(pixelBuffer: CVPixelBuffer) {
+  func processMeasureBodyPose(pixelBuffer: CVPixelBuffer) {
     do {
       try sequenceHandler.perform([poseRequest], on: pixelBuffer)
       guard let first = poseRequest.results?.first else { return }
-
+      
+      let label = mlManager.bodyPosePredict(from: first)
+      DispatchQueue.main.async {
+        self.mlPredictions.append(label)
+        
+        let lastEAR = self.ears.last ?? 1.0
+        print(lastEAR, "Measure")
+        let isSnooze = (label == "Snooze" && lastEAR < 0.1)
+        self.onSnoozeDetected?(isSnooze)
+      }
+    } catch {
+      print("Body Pose 처리 실패")
+    }
+  }
+  
+  func processGuidingBodyPose(pixelBuffer: CVPixelBuffer) {
+    do {
+      try sequenceHandler.perform([poseRequest], on: pixelBuffer)
+      guard let first = poseRequest.results?.first else { return }
+      
       // 어깨 위치 체크 (기존)
       guard let left = try? first.recognizedPoint(.leftShoulder),
             let right = try? first.recognizedPoint(.rightShoulder),
@@ -105,20 +141,11 @@ extension VisionManager {
         }
         return
       }
-
-      let label = mlManager.bodyPosePredict(from: first)
-      DispatchQueue.main.async {
-        self.mlPredictions.append(label)
-        
-        let lastEAR = self.ears.last ?? 1.0
-        print(lastEAR)
-        let isSnooze = (label == "Snooze" && lastEAR < 0.1)
-        self.onSnoozeDetected?(isSnooze)
-      }
-
+      
       let points = (left: CGPoint(x: left.x, y: left.y),
                     right: CGPoint(x: right.x, y: right.y))
-
+      
+      print(points, "guiding")
       DispatchQueue.main.async {
         self.shoulderPoints = points
       }
