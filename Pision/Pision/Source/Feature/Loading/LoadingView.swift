@@ -10,15 +10,8 @@ import SwiftUI
 struct LoadingView: View {
   @State private var progress = 0
   @State private var messageIndex = 0
-  
-  
-  private let messages: [String] = [
-    "사용자의 측정기록을 바탕으로 집중도를 측정하고 있어요!",
-    "조금만 기다려 주세요",
-  ]
 
   private let delays: [Double] = [1, 1, 1]
-
 }
 
 //MARK: View
@@ -30,17 +23,15 @@ extension LoadingView{
         .ignoresSafeArea()
       
       VStack(spacing: 20) {
-        
-        VStack {
-          Text(messages[messageIndex])
-            .font(.FontSystem.b2)
-            .foregroundStyle(.BR_20)
-            .padding(.horizontal, 20)
-            .padding(.vertical, 30)
-        }
-        .background(Color.white)
-        .cornerRadius(20)
-        .frame(maxWidth: 400)
+        Text("사용자의 측정기록을 바탕으로 집중도를 측정하고 있어요!")
+          .font(.spoqaHanSansNeo(type: .bold, size: 16))
+          .foregroundStyle(.BR_20)
+          .multilineTextAlignment(.center)
+          .frame(maxWidth: .infinity)
+          .frame(height: 102)
+          .background(.W_00)
+          .clipShape(RoundedRectangle(cornerRadius: 20))
+          .padding(.horizontal, 69)
         
         LottieView(animation: "zipzoongi")
           .frame(width: 300, height: 300)
