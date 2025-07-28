@@ -10,6 +10,7 @@ import SwiftData
 
 struct AuxScoreView: View {
   @StateObject var viewModel: AuxScoreViewModel
+  @State private var showInfoSheet = false
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
@@ -19,6 +20,9 @@ struct AuxScoreView: View {
         contentView
       }
       .buttonStyle(PlainButtonStyle())
+    }
+    .sheet(isPresented: $showInfoSheet) {
+      InfoSheetView(isPresented: $showInfoSheet, data: .auxScore)
     }
   }
 
@@ -42,7 +46,11 @@ struct AuxScoreView: View {
           Text("AuxScore")
             .font(.FontSystem.h4)
             .foregroundColor(Color.B_00)
-          Image("info")
+          Button(action: {
+            showInfoSheet = true
+          }) {
+            Image("info")
+          }
         }
         Text("세부적인 정보로 집중도를 파악해요")
           .font(.FontSystem.btn)

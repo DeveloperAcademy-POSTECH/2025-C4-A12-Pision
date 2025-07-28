@@ -21,7 +21,7 @@ struct CoreScoreView: View {
       }
     }
     .sheet(isPresented: $showInfoSheet) {
-      CoreScoreInfoSheetView(isPresented: $showInfoSheet)
+      InfoSheetView(isPresented: $showInfoSheet, data: .coreScore)
     }
   }
 
