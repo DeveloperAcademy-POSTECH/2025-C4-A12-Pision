@@ -10,6 +10,7 @@ import SwiftData
 
 struct CoreScoreView: View {
   @StateObject var viewModel: CoreScoreViewModel
+  @State private var showInfoSheet = false
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
@@ -18,6 +19,9 @@ struct CoreScoreView: View {
       }) {
         contentView
       }
+    }
+    .sheet(isPresented: $showInfoSheet) {
+      CoreScoreInfoSheetView(isPresented: $showInfoSheet)
     }
   }
 
@@ -41,7 +45,12 @@ struct CoreScoreView: View {
           Text("CoreScore")
             .font(.FontSystem.h4)
             .foregroundColor(Color.B_00)
-          Image("info")
+          
+          Button(action: {
+            showInfoSheet = true
+          }) {
+            Image("info")
+          }
         }
         Text("실시간 정보로 집중도를 파악해요")
           .font(.FontSystem.btn)
