@@ -10,15 +10,24 @@ import Vision
 
 // MARK: - MLManager
 final class MLManager {
-  private let model: pisionModel
+  private let snoozeModel: pisionModel
+  private let handPoseModel: MyHandPose
   private var poseBuffer: [VNHumanBodyPoseObservation] = []
+  private var handPoseBuffer: [VNHumanHandPoseObservation] = []
   
   init?() {
-    guard let loaded = try? pisionModel(configuration: MLModelConfiguration()) else {
+    guard let snoozeModel = try? pisionModel(configuration: MLModelConfiguration()) else {
       print("Log: 모델 로드 실패")
       return nil
     }
-    self.model = loaded
+    
+    guard let handPoseModel = try? MyHandPose(configuration: MLModelConfiguration()) else {
+      print("Log: 핸드 포즈 모델 로드 실패")
+      return nil
+    }
+    
+    self.snoozeModel = snoozeModel
+    self.handPoseModel = handPoseModel
   }
 }
 
@@ -64,12 +73,102 @@ extension MLManager {
           }
         }
       }
-      let result = try model.prediction(poses: array)
+      let result = try snoozeModel.prediction(poses: array)
       let label = result.label
       return label
     } catch {
       print("Log: 예측 에러")
     }
     return ""
+  }
+  
+  func handPosePredict2(from observation: VNHumanHandPoseObservation) -> (label: String, confidence: Double) {
+    do {
+      let array = try MLMultiArray(
+        shape: [1, 3, 21] as [NSNumber],
+        dataType: .float32
+      )
+      
+      let jointNames: [VNHumanHandPoseObservation.JointName] = [
+        .indexDIP, .indexMCP, .indexPIP, .indexTip,
+        .littleDIP, .littleMCP, .littlePIP, .littleTip,
+        .middleDIP, .middleMCP, .middlePIP, .middleTip,
+        .ringDIP, .ringMCP, .ringPIP, .ringTip,
+        .thumbIP, .thumbMP, .thumbCMC, .thumbTip,
+        .wrist
+      ]
+      
+      // 한 프레임 관찰치에서 모든 관절 좌표 추출
+      let points = try observation.recognizedPoints(.all)
+      let b = NSNumber(value: 0) // batch index
+      
+      for (jIdx, joint) in jointNames.enumerated() {
+        let j = NSNumber(value: jIdx)
+        if let pt = points[joint] {
+          array[[b, 0, j]] = NSNumber(value: Float(pt.location.x))
+          array[[b, 1, j]] = NSNumber(value: Float(pt.location.y))
+          array[[b, 2, j]] = NSNumber(value: Float(pt.confidence))
+        } else {
+          array[[b, 0, j]] = 0
+          array[[b, 1, j]] = 0
+          array[[b, 2, j]] = 0
+        }
+      }
+      
+      let result = try handPoseModel.prediction(poses: array)
+      let label = result.label
+      let confidence = result.labelProbabilities[label] ?? 0.0
+      
+      if label == "Fist" {
+        return (label, confidence)
+      } else {
+        return ("Extra", 0.0)
+      }
+    } catch {
+      print("손 포즈 예측 에러:", error)
+      return ("Extra", 0.0)
+    }
+  }
+  
+  
+  func handPosePredict(from observation: VNHumanHandPoseObservation) -> [String:Double] {
+    handPoseBuffer.append(observation)
+    
+    do {
+      let array = try MLMultiArray(shape: [1, 3, 21] as [NSNumber], dataType: .float32)
+      
+      let jointNames: [VNHumanHandPoseObservation.JointName] = [
+        .indexDIP, .indexMCP, .indexPIP, .indexTip,
+        .littleDIP, .littleMCP, .littlePIP, .littleTip,
+        .middleDIP, .middleMCP, .middlePIP, .middleTip,
+        .ringDIP, .ringMCP, .ringPIP, .ringTip,
+        .thumbIP, .thumbMP, .thumbCMC, .thumbTip,
+        .wrist
+      ]
+      
+      for (frameIndex, observation) in handPoseBuffer.enumerated() {
+        
+        let points = try observation.recognizedPoints(.all)
+        
+        for (jointIndex, joint) in jointNames.enumerated() {
+          if let point = points[joint] {
+            array[[frameIndex as NSNumber, 0, jointIndex as NSNumber]] = NSNumber(value: Float(point.location.x))
+            array[[frameIndex as NSNumber, 1, jointIndex as NSNumber]] = NSNumber(value: Float(point.location.y))
+            array[[frameIndex as NSNumber, 2, jointIndex as NSNumber]] = NSNumber(value: Float(point.confidence))
+          } else {
+            array[[frameIndex as NSNumber, 0, jointIndex as NSNumber]] = 0
+            array[[frameIndex as NSNumber, 1, jointIndex as NSNumber]] = 0
+            array[[frameIndex as NSNumber, 2, jointIndex as NSNumber]] = 0
+          }
+        }
+      }
+      let result = try handPoseModel.prediction(poses: array)
+      let label = result.label
+      let p = result.labelProbabilities
+      return p
+    } catch {
+      print("예측 에러")
+    }
+    return ["" : 0]
   }
 }

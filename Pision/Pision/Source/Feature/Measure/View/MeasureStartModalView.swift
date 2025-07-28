@@ -70,7 +70,7 @@ extension MeasureStartModalView {
     }
     .clipShape(RoundedRectangle(cornerRadius: 16))
     .onAppear {
-      DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+      DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
         isShowGestureGuide()
       }
     }
