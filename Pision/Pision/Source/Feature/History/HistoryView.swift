@@ -14,7 +14,7 @@ struct HistoryView: View {
   
   @State var selectedDate: Date = Date()
   @State var calendarMode: CalendarView.ViewMode = .daily
-  @State var isNext:Bool = false
+  @State var tabbedTasks: [Date: Bool] = [:]
   
   var filteredTasks: [TaskData] {
     let startOfDay = Calendar.current.startOfDay(for: selectedDate)
@@ -82,12 +82,13 @@ extension HistoryView {
               Spacer()
             }
             ForEach(filteredTasks, id: \.startTime) { task in
-              Button {
-                isNext = true
-//                print("\(task.startTime)")
-              } label: {
-                HistoryRowView(task: task)
-              }
+              HistoryRowView(
+                isTabed: Binding(
+                  get: { tabbedTasks[task.startTime] ?? false },
+                  set: { tabbedTasks[task.startTime] = $0 }
+                ),
+                task: task
+              )
             }
           }
         }
@@ -125,6 +126,6 @@ extension HistoryView {
   let context = container.mainContext
   context.insert(HistoryView.mock)
   
-  return HistoryView(selectedDate: Date())
+  return HistoryView()
     .modelContainer(container)
 }

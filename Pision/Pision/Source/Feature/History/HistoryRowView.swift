@@ -9,6 +9,7 @@ import SwiftUI
 
 // MARK: - Var
 struct HistoryRowView: View {
+  @Binding var isTabed: Bool
   let task: TaskData
   var avgFocus: Int {
     guard task.durationTime > 0 else { return 0 }
@@ -19,7 +20,9 @@ struct HistoryRowView: View {
 // MARK: - View
 extension HistoryRowView {
   var body: some View {
-    NavigationLink(destination: AnalyzeView(taskData: task)) {
+    Button(action: {
+      isTabed = true
+    }) {
       HStack {
         VStack(alignment: .leading) {
           HStack {
@@ -68,10 +71,14 @@ extension HistoryRowView {
           }
         }
       }
-      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+      .frame(maxWidth: .infinity, alignment: .leading)
       .padding()
       .background(RoundedRectangle(cornerRadius: 12).fill(Color.white))
       .padding(.horizontal)
+    }
+
+    .navigationDestination(isPresented: $isTabed) {
+      AnalyzeView(taskData: task)
     }
   }
 }
@@ -92,5 +99,5 @@ extension HistoryRowView {
 }
 
 #Preview {
-  HistoryRowView(task: HistoryView.mock)
+  HistoryRowView(isTabed: .constant(false), task: HistoryView.mock)
 }
