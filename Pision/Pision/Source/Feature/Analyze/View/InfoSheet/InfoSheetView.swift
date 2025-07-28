@@ -21,50 +21,51 @@ struct InfoSheetView: View {
       contentSection
     }
     .background(Color.white)
+    .presentationDetents([.height(644)]) // 고정 높이
   }
   
   private var headerSection: some View {
-    ZStack {
-      Color.blue // 파란색 배경
-      
-      VStack(spacing: 16) {
-        HStack {
-          Spacer()
-          Button(action: {
-            isPresented = false
-          }) {
-            Image(systemName: "xmark")
-              .foregroundColor(.white)
-              .font(.system(size: 18, weight: .medium))
-          }
-        }
-        .padding(.horizontal, 20)
-        .padding(.top, 10)
+    VStack(spacing: 8) {
+      HStack {
+        Spacer()
         
-        // 아이콘과 제목
-        HStack(spacing: 12) {
-          Image(systemName: data.iconName)
-            .foregroundColor(.white)
-            .font(.system(size: 40))
-          
-          VStack(alignment: .leading, spacing: 4) {
-            Text(data.title)
-              .font(.system(size: 24, weight: .bold))
-              .foregroundColor(.white)
-            
-            Text(data.description)
-              .font(.system(size: 14))
-              .foregroundColor(.white)
-              .multilineTextAlignment(.leading)
-          }
-          
-          Spacer()
+        Button(action: {
+          isPresented = false
+        }) {
+          Image(systemName: "xmark")
+            .resizable()
+            .frame(width: 15, height: 15)
+            .font(.system(size: 20, weight: .semibold))
+            .foregroundColor(.W_00)
         }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 20)
       }
+      .padding(.top, 15)
+      .padding(.trailing, 15)
+      
+      // 아이콘과 제목
+      HStack(spacing: 38) {
+        Image(.coreInfo)
+          .resizable()
+          .frame(width: 79, height: 79)
+        
+        VStack(alignment: .leading, spacing: 4) {
+          Text(data.title)
+            .font(.spoqaHanSansNeo(type: .bold, size: 28))
+            .foregroundColor(.W_00)
+          
+          Text(data.description)
+            .font(.spoqaHanSansNeo(type: .medium, size: 12))
+            .foregroundColor(.W_00)
+        }
+//        .background(Color.green).opacity(0.3)
+        
+        Spacer()
+      }
+      .padding(.leading, 38)
+      .padding(.bottom, 20)
     }
-    .frame(height: 200)
+    .frame(height: 168)
+    .background(Color.BR_00)
   }
   
   private var contentSection: some View {
