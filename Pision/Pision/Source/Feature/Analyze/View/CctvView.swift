@@ -10,7 +10,7 @@ import SwiftData
 
 struct CctvView: View {
   @StateObject var viewModel: CctvViewModel
-
+  
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
       Button(action: {
@@ -21,7 +21,7 @@ struct CctvView: View {
       .buttonStyle(PlainButtonStyle())
     }
   }
-
+  
   private var contentView: some View {
     VStack(alignment: .leading) {
       headerView
@@ -32,8 +32,9 @@ struct CctvView: View {
     .padding(20)
     .background(Color.W_00)
     .cornerRadius(16)
+    .animation(nil, value: viewModel.isExpanded)  // 애니메이션 비활성화
   }
-
+  
   private var headerView: some View {
     HStack {
       VStack(alignment: .leading, spacing: 4) {
@@ -47,32 +48,26 @@ struct CctvView: View {
           .font(.FontSystem.btn)
           .foregroundColor(Color.B_20)
       }
-
+      
       Spacer()
-
-      HStack(spacing: 16) {
-        Text("\(String(format: "%.0f", viewModel.taskData.averageScore))점")
-          .font(.spoqaHanSansNeo(type: .bold, size: 28))
-          .foregroundColor(Color.BR_00)
-
-        Image(viewModel.isExpanded ? "dropUp" : "dropDown")
-      }
+      
+      Image(viewModel.isExpanded ? "dropUp" : "dropDown")
     }
   }
-
+  
   private var CctvImageView: some View {
     VStack {
       if viewModel.hasSnoozeImages {
         ScrollView(.horizontal, showsIndicators: false) {
-          HStack(spacing: 8) {
+          HStack(spacing: 9) {
             ForEach(Array(viewModel.snoozeImages.enumerated()), id: \.offset) { index, uiImage in
               Image(uiImage: uiImage)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(height: 120)
+                .frame(height: 200)
+                .cornerRadius(12)
             }
           }
-          .padding(.horizontal, 8)
         }
       } else {
         Text("포착된 순간이 없습니다")
