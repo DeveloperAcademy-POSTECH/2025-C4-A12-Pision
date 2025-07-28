@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct CustomTabBar: View {
+  @EnvironmentObject private var coordinator: Coordinator
+  
   @Binding var selectedTab: Tab
   
   var body: some View {
@@ -25,8 +27,8 @@ struct CustomTabBar: View {
       .padding(.horizontal, 48)
       .padding(.bottom, 16)
       
-      NavigationLink {
-        GuidingCameraView()
+      Button {
+        coordinator.push(.guidingCamera)
       } label: {
         ZStack {
           Circle()
