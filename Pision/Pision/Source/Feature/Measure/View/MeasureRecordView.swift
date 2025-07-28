@@ -67,15 +67,15 @@ extension MeasureRecordView {
       viewModel.cameraStop()
     }
     .onTapGesture {
-      viewModel.resetAutoDimTimer()
+      viewModel.resetAutoDim()
     }
   }
   
   private var brightnessOverlay: some View {
     Rectangle()
       .background(.B_00)
-      .opacity(viewModel.shouldDimScreen ? 0.85 : 0)
-      .animation(.easeInOut(duration: 0.3), value: viewModel.shouldDimScreen)
+      .opacity(viewModel.isShouldDimScreen ? 0.85 : 0)
+      .animation(.easeInOut(duration: 0.3), value: viewModel.isShouldDimScreen)
       .ignoresSafeArea()
   }
 }
