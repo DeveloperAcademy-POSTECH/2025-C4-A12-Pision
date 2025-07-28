@@ -9,11 +9,8 @@ import SwiftUI
 import SwiftData
 
 struct CctvView: View {
-  let taskData: TaskData
   @StateObject var viewModel: CctvViewModel
-}
 
-extension CctvView {
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
       Button(action: {
@@ -24,7 +21,7 @@ extension CctvView {
       .buttonStyle(PlainButtonStyle())
     }
   }
-  
+
   private var contentView: some View {
     VStack(alignment: .leading) {
       headerView
@@ -35,9 +32,8 @@ extension CctvView {
     .padding(20)
     .background(Color.W_00)
     .cornerRadius(16)
-    .animation(nil, value: viewModel.isExpanded)  // 애니메이션 비활성화
   }
-  
+
   private var headerView: some View {
     HStack {
       VStack(alignment: .leading, spacing: 4) {
@@ -55,7 +51,7 @@ extension CctvView {
       Spacer()
 
       HStack(spacing: 16) {
-        Text("\(viewModel.averageScoreText)점")
+        Text("\(String(format: "%.0f", viewModel.taskData.averageScore))점")
           .font(.spoqaHanSansNeo(type: .bold, size: 28))
           .foregroundColor(Color.BR_00)
 
@@ -63,10 +59,26 @@ extension CctvView {
       }
     }
   }
-  
+
   private var CctvImageView: some View {
-    HStack(spacing: 0) {
-      // 이미지들
+    VStack {
+      if viewModel.hasSnoozeImages {
+        ScrollView(.horizontal, showsIndicators: false) {
+          HStack(spacing: 8) {
+            ForEach(Array(viewModel.snoozeImages.enumerated()), id: \.offset) { index, uiImage in
+              Image(uiImage: uiImage)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(height: 120)
+            }
+          }
+          .padding(.horizontal, 8)
+        }
+      } else {
+        Text("포착된 순간이 없습니다")
+          .foregroundColor(.gray)
+          .padding()
+      }
     }
   }
 }
