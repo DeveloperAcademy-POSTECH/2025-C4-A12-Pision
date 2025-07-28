@@ -50,8 +50,8 @@ struct CoreScoreView: View {
 
       Spacer()
 
-      HStack(spacing: 16) {
-        Text("\(viewModel.averageScoreText)점")
+      HStack(spacing: 8) {
+        Text("\(viewModel.averageScoreText)%")
           .font(.spoqaHanSansNeo(type: .bold, size: 28))
           .foregroundColor(Color.BR_00)
 
@@ -62,11 +62,14 @@ struct CoreScoreView: View {
 
   private var chartSectionView: some View {
     VStack(alignment: .leading, spacing: 20) {
-      HStack(spacing: 0) {
-        yAxisLabels
-        coreScoreChartWithLabels
+      ZStack {
+        HStack(spacing: 0) {
+          yAxisLabels
+          coreScoreChartWithLabels
+        }
+        
+        FadeOutOverlay()
       }
-
       coreScoreChartLegend
     }
   }
@@ -293,17 +296,17 @@ struct CoreScoreView: View {
   }
 }
 
-//#Preview {
-//  let container = try! ModelContainer(
-//    for: TaskData.self,
-//    configurations: ModelConfiguration(isStoredInMemoryOnly: true)
-//  )
-//
-//  let context = container.mainContext
-//  context.insert(TaskData.mock)
-//
-//  return CoreScoreView(viewModel: CoreScoreViewModel(taskData: TaskData.mock))
-//    .modelContainer(container)
-//    .padding()
-//    .background(Color.gray.opacity(0.1))
-//}
+#Preview {
+  let container = try! ModelContainer(
+    for: TaskData.self,
+    configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+  )
+
+  let context = container.mainContext
+  context.insert(TaskData.mock)
+
+  return CoreScoreView(viewModel: CoreScoreViewModel(taskData: TaskData.mock))
+    .modelContainer(container)
+    .padding()
+    .background(Color.gray.opacity(0.1))
+}

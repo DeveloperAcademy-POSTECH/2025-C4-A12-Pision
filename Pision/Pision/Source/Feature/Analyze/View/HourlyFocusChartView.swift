@@ -29,6 +29,9 @@ extension AnalyzeView {
               yAxisLabels
               focusChartWithLabels
             }
+              
+            FadeOutOverlay()
+            
             averageLineForFullChart // 평균선 오버레이
               .padding(.bottom, 5)
           }

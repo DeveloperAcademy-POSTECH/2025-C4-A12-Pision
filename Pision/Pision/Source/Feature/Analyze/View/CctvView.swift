@@ -69,9 +69,10 @@ struct CctvView: View {
             }
           }
         }
+        FadeOutOverlay()
       } else {
         Text("포착된 순간이 없습니다")
-          .foregroundColor(.gray)
+          .foregroundColor(.B_30)
           .padding()
       }
     }

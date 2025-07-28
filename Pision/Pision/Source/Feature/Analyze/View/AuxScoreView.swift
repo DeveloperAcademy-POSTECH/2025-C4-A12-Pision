@@ -63,11 +63,13 @@ struct AuxScoreView: View {
 
   private var chartSectionView: some View {
     VStack(alignment: .leading, spacing: 20) {
-      HStack(spacing: 0) {
-        yAxisLabels
-        auxScoreChartWithLabels
+      ZStack {
+        HStack(spacing: 0) {
+          yAxisLabels
+          auxScoreChartWithLabels
+        }
+        FadeOutOverlay()
       }
-
       auxScoreChartLegend
     }
   }
