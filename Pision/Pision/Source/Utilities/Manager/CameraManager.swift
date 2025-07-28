@@ -13,6 +13,7 @@ final class CameraManager: NSObject {
   let session = AVCaptureSession()
 
   private var lastCaptureDate: Date? = nil
+  private var isGuiding: Bool = false
   private var isMeasuring: Bool = false
   private let photoOutput = AVCapturePhotoOutput()
   private let videoOutput = AVCaptureVideoDataOutput()
@@ -48,6 +49,18 @@ extension CameraManager {
         self.session.stopRunning()
       }
     }
+  }
+  
+  /// 가이드를 시작합니다.
+  /// 내부 상태 변수 `isGuiding`을 `true`로 설정합니다.
+  func startGuiding() {
+    isGuiding = true
+  }
+  
+  /// 가이드를 중단합니다.
+  /// 내부 상태 변수 `isGuiding`을 `false`로 설정합니다.
+  func stopGuiding() {
+    isGuiding = false
   }
   
   /// 측정을 시작합니다.
@@ -149,10 +162,16 @@ extension CameraManager {
 // MARK: - Delegate
 extension CameraManager: AVCaptureVideoDataOutputSampleBufferDelegate {
   func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-    guard isMeasuring else { return }
     guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-    visionManager.processFaceLandMark(pixelBuffer: pixelBuffer)
-    visionManager.processBodyPose(pixelBuffer: pixelBuffer)
+    if isMeasuring {
+      visionManager.processMeasureFaceLandMark(pixelBuffer: pixelBuffer)
+      visionManager.processMeasureBodyPose(pixelBuffer: pixelBuffer)
+    }
+    
+    if isGuiding {
+      visionManager.processGuidingBodyPose(pixelBuffer: pixelBuffer)
+      visionManager.processGuidingFaceLandMark(pixelBuffer: pixelBuffer)
+    }
   }
 }
 
@@ -167,8 +186,7 @@ extension CameraManager: AVCapturePhotoCaptureDelegate {
       return
     }
   
+    print("캡처 호출")
     onPhotoCaptured?(data)
   }
 }
-
-

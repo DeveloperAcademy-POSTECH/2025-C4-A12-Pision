@@ -15,7 +15,17 @@ final class MeasureViewModel: ObservableObject {
   // MARK: - Timer Var
   @Published private(set) var timerState: TimerState = .stopped
   @Published private(set) var secondsElapsed: Int = 0
-  private var timer: Timer?
+  @Published var isShouldDimScreen: Bool = false
+  @Published var isAutoBrightnessModeOn: Bool = false {
+    didSet {
+      if !isAutoBrightnessModeOn {
+        timerManager.startAutoDim()
+      } else {
+        timerManager.cancelAutoDim()
+        isShouldDimScreen = false
+      }
+    }
+  }
   
   var timeString: String {
     let hrs = secondsElapsed / 3600
@@ -23,21 +33,7 @@ final class MeasureViewModel: ObservableObject {
     let secs = secondsElapsed % 60
     return String(format: "%02d:%02d:%02d", hrs, mins, secs)
   }
-  
-  // MARK: - Brightness Var
-  @Published private(set) var shouldDimScreen: Bool = false
-  @Published var isAutoBrightnessModeOn: Bool = false {
-    didSet {
-      if !isAutoBrightnessModeOn {
-        startAutoBrightnessMode()
-      } else {
-        cancelAutoBrightnessMode()
-      }
-    }
-  }
-  
-  private var brightnessTimer: DispatchWorkItem?
-  
+
   // MARK: - Guiding Var
   @Published private(set) var isNext: Bool = false
   @Published private(set) var isGuidingAngle: Bool = false
@@ -78,6 +74,7 @@ final class MeasureViewModel: ObservableObject {
   private let visionManager = VisionManager()
   private let scoreManager = ScoreManager()
   private let swiftDataManager = SwiftDataManager()
+  private let timerManager = TimerManager()
   
   // Session
   var session: AVCaptureSession {
@@ -88,6 +85,8 @@ final class MeasureViewModel: ObservableObject {
   init() {
     cameraManager = CameraManager(visionManager: visionManager)
     cameraManager.requestAndCheckPermissions()
+    
+    bindTimer()
     
     visionManager.onSnoozeDetected = { [weak self] detected in
       guard detected else { return }
@@ -117,96 +116,61 @@ extension MeasureViewModel {
 
 // MARK: - Timer
 extension MeasureViewModel {
+  private func bindTimer() {
+    timerManager.onTick = { [weak self] sec in
+      guard let self = self else { return }
+      DispatchQueue.main.async {
+        self.secondsElapsed = sec
+      }
+    }
+    
+    timerManager.onAutoDim = { [weak self] in
+      guard let self = self else { return }
+      DispatchQueue.main.async {
+        print("호출")
+        self.isShouldDimScreen = true
+      }
+    }
+  }
+  
   func timerStart() {
-    secondsElapsed = 0
-    focusTime = 0
+    timerManager.timerStart()
     timerState = .running
-    startTimerLoop()
+    timerManager.startAutoDim()
     cameraManager.startMeasuring()
-    startAutoBrightnessMode()
   }
   
   func timerPause() {
     guard timerState == .running else { return }
-    timer?.invalidate()
+    timerManager.timerPause()
     timerState = .pause
     cameraManager.stopMeasuring()
   }
   
   func timerResume() {
     guard timerState == .pause else { return }
+    timerManager.timerResume()
     timerState = .running
-    startTimerLoop()
     cameraManager.startMeasuring()
   }
   
   func timerStop(context: ModelContext, completion: @escaping (SaveResult) -> Void) {
-    timer?.invalidate()
-    timer = nil
+    timerManager.timerStop()
     timerState = .stopped
+    timerManager.cancelAutoDim()
     cameraManager.stopMeasuring()
-    cancelAutoBrightnessMode()
-    
-    saveRemainingAverage()
-    
-    saveTaskDataAndSaveToSwiftData(context: context, completion: completion)
   }
-  
-  private func startTimerLoop() {
-    timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-      guard let self = self else { return }
-      self.secondsElapsed += 1
-      
-      if self.secondsElapsed % 30 == 0 {
-        self.calculateScores()
-      }
-      
-      if self.secondsElapsed % 600 == 0 {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-          self.save10MinuteAverage()
-        }
-      }
-    }
-  }
-}
-
-// MARK: - Brightness
-extension MeasureViewModel {
-  func resetAutoDimTimer() {
-    brightnessTimer?.cancel()
-    
-    let task = DispatchWorkItem { [weak self] in
-      self?.shouldDimScreen = true
-    }
-    
-    brightnessTimer = task
-    DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: task)
-    
-    shouldDimScreen = false
-  }
-  
-  private func startAutoBrightnessMode() {
-    brightnessTimer?.cancel()
-    guard !isAutoBrightnessModeOn else { return }
-    
-    let task = DispatchWorkItem {
-      self.shouldDimScreen = true
-    }
-    brightnessTimer = task
-    DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: task)
-  }
-  
-  private func cancelAutoBrightnessMode() {
-    brightnessTimer?.cancel()
-    brightnessTimer = nil
-    shouldDimScreen = false
+   
+  func resetAutoDim() {
+    timerManager.resetAutoDim()
+    isShouldDimScreen = false
   }
 }
 
 // MARK: - Guiding
 extension MeasureViewModel {
   func guidingStart(screenWidth: CGFloat) {
-    cameraManager.startMeasuring()
+    cameraManager.startGuiding()
     checkYaw(screenWidth: screenWidth)
     
     Publishers.CombineLatest($isGuidingAngle, $isGuidingPose)
@@ -217,6 +181,7 @@ extension MeasureViewModel {
   }
   
   func guidingFinish() {
+    cameraManager.stopGuiding()
     isPresentedStartModal = false
     showCountdown = true
     //isNext = true
