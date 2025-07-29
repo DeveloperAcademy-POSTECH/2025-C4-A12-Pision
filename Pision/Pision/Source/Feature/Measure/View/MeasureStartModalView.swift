@@ -31,7 +31,7 @@ extension MeasureStartModalView {
       
       VStack(alignment: .center) {
         if !showGestureGuide {
-          Text("성일님 집중 측정을 위한\n세팅이 완료 되었어요")
+          Text("집중 측정을 위한\n세팅이 완료 되었어요")
             .padding(.top, 50)
             .font(.FontSystem.h2)
             .foregroundStyle(.W_00)
