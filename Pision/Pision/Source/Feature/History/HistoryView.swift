@@ -40,25 +40,8 @@ extension HistoryView {
         .resizable()
         .ignoresSafeArea()
       VStack {
-        HStack {
-          HStack {
-            Text("")
-              .font(.FontSystem.b2)
-              .foregroundStyle(.B_20)
-            Spacer()
-            Text("기록")
-              .font(.FontSystem.h2)
-              .foregroundStyle(.B_00)
-            Spacer()
-//            Image(systemName: "trophy")
-//              .foregroundStyle(.BR_00)
-//            Image(systemName: "gearshape")
-//              .foregroundStyle(.BR_00)
-          }.padding(10)
-        }
-        .padding(.top)
-        .padding(.leading)
-        .padding(.trailing)
+        CustomNavigationbar(title: "기록", showBackButton: false)
+          .padding(.bottom, 12)
         
         CalendarView(selectedDate: $selectedDate, selectedMode: $calendarMode)
           .frame(height: calendarMode == .daily ? 120 : 330)
