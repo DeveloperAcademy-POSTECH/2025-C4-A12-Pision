@@ -37,14 +37,7 @@ struct HomeView: View {
         VStack{
           HStack{
             HStack{
-              Text("닉네임")
-                .font(.FontSystem.b2)
-                .foregroundStyle(.B_20)
               Spacer()
-              Image(systemName: "trophy")
-                .foregroundStyle(.BR_00)
-              Image(systemName: "gearshape")
-                .foregroundStyle(.BR_00)
             }.padding(10)
           }
         }

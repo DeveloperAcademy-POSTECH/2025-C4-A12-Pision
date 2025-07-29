@@ -42,7 +42,7 @@ extension HistoryView {
       VStack {
         HStack {
           HStack {
-            Text("닉네임")
+            Text("")
               .font(.FontSystem.b2)
               .foregroundStyle(.B_20)
             Spacer()
@@ -50,10 +50,10 @@ extension HistoryView {
               .font(.FontSystem.h2)
               .foregroundStyle(.B_00)
             Spacer()
-            Image(systemName: "trophy")
-              .foregroundStyle(.BR_00)
-            Image(systemName: "gearshape")
-              .foregroundStyle(.BR_00)
+//            Image(systemName: "trophy")
+//              .foregroundStyle(.BR_00)
+//            Image(systemName: "gearshape")
+//              .foregroundStyle(.BR_00)
           }.padding(10)
         }
         .padding(.top)
@@ -91,6 +91,7 @@ extension HistoryView {
               )
             }
           }
+          .padding(.bottom, 165)
         }
         .onChange(of: selectedDate) { _, newValue in
           print("선택된 날짜: \(newValue)")
