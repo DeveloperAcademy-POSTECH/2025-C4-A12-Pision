@@ -33,6 +33,10 @@ final class VisionManager: ObservableObject {
   private let poseRequest = VNDetectHumanBodyPoseRequest()
   private let handRequest = VNDetectHumanHandPoseRequest()
   
+  private var snoozeCounter = 0
+  private let snoozeThresholdFrames = 30 // 약 2초 (15fps 기준)
+  private var isSnoozeAlreadyDetected = false
+  
   // Manager
   private let mlManager = MLManager()!
   private let scoreManager = ScoreManager()
@@ -109,18 +113,53 @@ extension VisionManager {
   /// 사람의 몸 자세를 분석하여 머신러닝 모델로부터 예측 결과(레이블)를 받아옵니다.
   /// Vision 프레임워크를 사용해 포즈를 추출하고, 추출된 첫 번째 결과를 ML 모델에 입력하여 동작을 분류합니다.
   /// - Parameter pixelBuffer: 분석할 영상 프레임의 픽셀 버퍼입니다.
+//  func processMeasureBodyPose(pixelBuffer: CVPixelBuffer) {
+//    do {
+//      try sequenceHandler.perform([poseRequest], on: pixelBuffer)
+//      guard let first = poseRequest.results?.first else { return }
+//      
+//      let label = mlManager.bodyPosePredict(from: first)
+//      DispatchQueue.main.async {
+//        self.mlPredictions.append(label)
+//        
+//        let lastEAR = self.ears.last ?? 1.0
+//        let isSnooze = (label == "Snooze" && lastEAR < 0.1)
+//        print(lastEAR, "lastEAR")
+//        self.onSnoozeDetected?(isSnooze)
+//      }
+//    } catch {
+//      print("Body Pose 처리 실패")
+//    }
+//  }
+  
   func processMeasureBodyPose(pixelBuffer: CVPixelBuffer) {
     do {
       try sequenceHandler.perform([poseRequest], on: pixelBuffer)
       guard let first = poseRequest.results?.first else { return }
-      
+
       let label = mlManager.bodyPosePredict(from: first)
+      
       DispatchQueue.main.async {
         self.mlPredictions.append(label)
         
         let lastEAR = self.ears.last ?? 1.0
-        let isSnooze = (label == "Snooze" && lastEAR < 0.1)
-        self.onSnoozeDetected?(isSnooze)
+        let isSnoozePose = (label == "Snooze")
+        let isEyesClosed = lastEAR < 0.1
+        
+        // snooze 조건 충족 중일 때 누적
+        if isSnoozePose && isEyesClosed {
+          self.snoozeCounter += 1
+          
+          if self.snoozeCounter >= self.snoozeThresholdFrames && !self.isSnoozeAlreadyDetected {
+            self.isSnoozeAlreadyDetected = true
+            self.onSnoozeDetected?(true)
+          }
+        } else {
+          // 조건 충족 안 하면 초기화
+          self.snoozeCounter = 0
+          self.isSnoozeAlreadyDetected = false
+          self.onSnoozeDetected?(false)
+        }
       }
     } catch {
       print("Body Pose 처리 실패")
@@ -204,13 +243,13 @@ extension VisionManager {
   }
   
   private func startFistTimer(label: String, confidence: Double) {
-    if label == "Fist" && confidence > 0.8 {
+    if label == "Fist" && confidence > 0.99 {
       if self.firstWorkItem == nil {
         let work = DispatchWorkItem { [weak self] in
           self?.onFistDetected?()
         }
         self.firstWorkItem = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: work)
+        DispatchQueue.main.asyncAfter(deadline: .now(), execute: work)
       }
     } else {
       self.resetFistTimer()

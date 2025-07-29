@@ -11,6 +11,9 @@ import SwiftData
 struct LoadingView: View {
   @EnvironmentObject private var coordinator: Coordinator
   
+  @Query(sort: \TaskData.startTime, order: .reverse)
+  private var allTasks: [TaskData]
+  
   @State private var progress: Int = 0
   @State private var timer: Timer?
   @State private var showAlternateMessage: Bool = false
@@ -73,11 +76,14 @@ extension LoadingView {
     progress = 0
     timer?.invalidate()
     
+    
     timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { t in
       if progress >= 100 {
         t.invalidate()
         DispatchQueue.main.async {
-          coordinator.popToRoot()
+          if let recentTask = allTasks.first {
+            coordinator.push(.analyze(recentTask, true))
+          } 
         }
       } else {
         progress += 1

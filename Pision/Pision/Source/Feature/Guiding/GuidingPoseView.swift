@@ -21,7 +21,7 @@ extension GuidingPoseView {
         .ignoresSafeArea()
       
       VStack {
-        CustomNavigationbar(title: "측정 가이드")
+        CustomNavigationbar(title: "측정 가이드", backButtonAction: { coordinator.pop() })
         GuidePoseContentView
       }
     }

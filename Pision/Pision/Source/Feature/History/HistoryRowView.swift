@@ -10,6 +10,7 @@ import SwiftUI
 // MARK: - Var
 struct HistoryRowView: View {
   @Binding var isTabed: Bool
+  @EnvironmentObject private var coordinator: Coordinator
   let task: TaskData
   var avgFocus: Int {
     guard task.durationTime > 0 else { return 0 }
@@ -21,7 +22,7 @@ struct HistoryRowView: View {
 extension HistoryRowView {
   var body: some View {
     Button(action: {
-      isTabed = true
+      coordinator.push(.analyze(task, false))
     }) {
       HStack {
         VStack(alignment: .leading) {
@@ -78,7 +79,7 @@ extension HistoryRowView {
     }
 
     .navigationDestination(isPresented: $isTabed) {
-      AnalyzeView(taskData: task)
+      AnalyzeView(taskData: task, isFromMeasure: true)
     }
   }
 }

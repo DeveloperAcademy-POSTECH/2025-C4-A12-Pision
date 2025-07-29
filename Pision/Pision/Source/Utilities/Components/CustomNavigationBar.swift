@@ -13,6 +13,7 @@ struct CustomNavigationbar: View {
   let titleColor: Color
   let showBackButton: Bool
   let buttonColor: Color
+  let backButtonAction: (() -> Void)
   
   //let rightButtonContent: RightContent?
   //let rightButtonAction: (() -> Void)?
@@ -23,15 +24,14 @@ struct CustomNavigationbar: View {
     title: String,
     showBackButton: Bool = true,
     titleColor: Color = .B_00,
-    buttonColor: Color = .B_00
-    //
+    buttonColor: Color = .B_00,
+    backButtonAction: @escaping (() -> Void)
   ) {
     self.title = title
     self.showBackButton = showBackButton
     self.titleColor = titleColor
     self.buttonColor = buttonColor
-    //    self.rightButtonContent = rightButtonContent
-    //    self.rightButtonAction = rightButtonAction
+    self.backButtonAction = backButtonAction
   }
 }
 
@@ -45,7 +45,7 @@ extension CustomNavigationbar {
       
       HStack {
         if showBackButton {
-          Button(action: { dismiss() }) {
+          Button(action: { backButtonAction() }) {
             Image(systemName: "chevron.left")
               .font(.title2)
               .foregroundColor(buttonColor)

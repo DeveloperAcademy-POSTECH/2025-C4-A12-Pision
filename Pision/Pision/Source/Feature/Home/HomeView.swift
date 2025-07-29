@@ -10,6 +10,7 @@ import SwiftData
 
 struct HomeView: View {
   @Query private var todayTasks: [TaskData]
+  @EnvironmentObject private var coordinator: Coordinator
   @State var isTabed:Bool = false
   
   init() {
@@ -54,7 +55,6 @@ struct HomeView: View {
             .font(.FontSystem.h1)
             .foregroundStyle(.BR_00)
           
-          
           Text("조금 더 집중할 수 있는 환경을")
             .font(.FontSystem.b1)
             .multilineTextAlignment(.center)
@@ -67,7 +67,7 @@ struct HomeView: View {
         }
         
         VStack{
-          LottieView(animation:"zipzoongi")
+          LottieView(animation:"main_lotie")
             .frame(width: 300, height: 300)
         }
         VStack(alignment: .leading) {
@@ -79,6 +79,7 @@ struct HomeView: View {
           if let latestTask = todayTasks.first {
             Button{
               isTabed = true
+              coordinator.push(.analyze(latestTask, false))
             }label:{
               HomeRowView(isTabed:$isTabed, task: latestTask)
                 .frame(height: 140)
