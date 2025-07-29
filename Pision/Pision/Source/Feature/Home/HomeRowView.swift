@@ -70,9 +70,6 @@ extension HomeRowView {
     .padding()
     .background(RoundedRectangle(cornerRadius: 12).fill(Color.white))
     .padding(.horizontal)
-    .navigationDestination(isPresented: $isTabed){
-      AnalyzeView(taskData: task)
-    }
   }
 }
 

@@ -10,6 +10,7 @@ import SwiftUI
 // MARK: - Var
 struct MeasureGuideView: View {
   // viewModel
+  @EnvironmentObject private var coordinator: Coordinator
   @ObservedObject private var viewModel: MeasureViewModel
   
   // init
@@ -22,7 +23,7 @@ struct MeasureGuideView: View {
 extension MeasureGuideView {
   var body: some View {
     VStack(spacing: 0) {
-      CustomNavigationbar(title: "자세 맞추기", titleColor: .W_00, buttonColor: .W_00)
+      CustomNavigationbar(title: "자세 맞추기", titleColor: .W_00, buttonColor: .W_00, backButtonAction: { coordinator.popToRoot() })
         .background(Color.B_00.opacity(0.6))
       
       ZStack {

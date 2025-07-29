@@ -33,7 +33,7 @@ extension LottieView{
     
     animationView.contentMode = .scaleAspectFit
     animationView.loopMode = .loop
-    animationView.animationSpeed = 3.5
+    animationView.animationSpeed = 1
     view.addSubview(animationView)
     
     animationView.play()

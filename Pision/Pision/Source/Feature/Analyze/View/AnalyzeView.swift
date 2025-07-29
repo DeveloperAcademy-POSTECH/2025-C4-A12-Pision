@@ -10,7 +10,17 @@ import Charts
 import SwiftData
 
 struct AnalyzeView: View {
+  @EnvironmentObject private var coordinator: Coordinator
   let taskData:TaskData
+  var isFromMeasure:Bool = false
+  
+  init(
+    taskData: TaskData,
+    isFromMeasure: Bool
+  ) {
+    self.taskData = taskData
+    self.isFromMeasure = isFromMeasure
+  }
 }
 
 extension AnalyzeView {
@@ -21,10 +31,10 @@ extension AnalyzeView {
         .ignoresSafeArea()
       
       VStack {
-        CustomNavigationbar(title: "집중 분석")
+        CustomNavigationbar(title: "집중 분석", backButtonAction: { coordinator.popToRoot() })
         
         ScrollView {
-          AnalyzeBodyView(taskData: taskData)
+          AnalyzeBodyView(taskData: taskData, isFromMeasure: isFromMeasure)
         }
       }
     }
@@ -34,7 +44,9 @@ extension AnalyzeView {
 
 extension AnalyzeView {
   struct AnalyzeBodyView: View {
+    @EnvironmentObject private var coordinator: Coordinator
     let taskData: TaskData
+    var isFromMeasure: Bool = false
     
     var body: some View {
       VStack(spacing: 8) {
@@ -43,6 +55,22 @@ extension AnalyzeView {
         CoreScoreView(viewModel:CoreScoreViewModel(taskData: taskData))
         AuxScoreView(viewModel:AuxScoreViewModel(taskData: taskData))
         CctvView(viewModel: CctvViewModel(taskData: taskData))
+        
+        if isFromMeasure {
+          Button {
+            coordinator.popToRoot()
+          } label: {
+            Text("완 료")
+              .font(.FontSystem.h3)
+              .foregroundStyle(.W_10)
+              .frame(maxWidth: .infinity)
+              .frame(height: 48)
+              .padding(.horizontal, 20)
+              .background(.BR_00)
+              .clipShape(RoundedRectangle(cornerRadius: 16))
+          }
+          .padding(.top, 30)
+        }
       }
       .padding(.horizontal, 20)
       .padding(.top, 5)
@@ -61,15 +89,3 @@ extension AnalyzeView {
   }
 }
 
-//#Preview {
-//  let container = try! ModelContainer(
-//    for: TaskData.self,
-//    configurations: ModelConfiguration(isStoredInMemoryOnly: true)
-//  )
-//  
-//  let context = container.mainContext
-//  context.insert(TaskData.mock)
-//  
-//  return AnalyzeView()
-//    .modelContainer(container)
-//}

@@ -11,5 +11,5 @@ enum Route: Hashable {
   case guidingCamera
   case guidingPose
   case loading
-  case analyze(TaskData)
+  case analyze(TaskData, Bool)
 }

@@ -40,7 +40,7 @@ extension HistoryView {
         .resizable()
         .ignoresSafeArea()
       VStack {
-        CustomNavigationbar(title: "기록", showBackButton: false)
+        CustomNavigationbar(title: "기록", showBackButton: false, backButtonAction: {})
           .padding(.bottom, 12)
         
         CalendarView(selectedDate: $selectedDate, selectedMode: $calendarMode)

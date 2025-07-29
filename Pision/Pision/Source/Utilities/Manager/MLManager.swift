@@ -119,6 +119,8 @@ extension MLManager {
       let label = result.label
       let confidence = result.labelProbabilities[label] ?? 0.0
       
+      print(label, "label")
+      print(confidence, "confidnece")
       if label == "Fist" {
         return (label, confidence)
       } else {
@@ -128,47 +130,5 @@ extension MLManager {
       print("손 포즈 예측 에러:", error)
       return ("Extra", 0.0)
     }
-  }
-  
-  
-  func handPosePredict(from observation: VNHumanHandPoseObservation) -> [String:Double] {
-    handPoseBuffer.append(observation)
-    
-    do {
-      let array = try MLMultiArray(shape: [1, 3, 21] as [NSNumber], dataType: .float32)
-      
-      let jointNames: [VNHumanHandPoseObservation.JointName] = [
-        .indexDIP, .indexMCP, .indexPIP, .indexTip,
-        .littleDIP, .littleMCP, .littlePIP, .littleTip,
-        .middleDIP, .middleMCP, .middlePIP, .middleTip,
-        .ringDIP, .ringMCP, .ringPIP, .ringTip,
-        .thumbIP, .thumbMP, .thumbCMC, .thumbTip,
-        .wrist
-      ]
-      
-      for (frameIndex, observation) in handPoseBuffer.enumerated() {
-        
-        let points = try observation.recognizedPoints(.all)
-        
-        for (jointIndex, joint) in jointNames.enumerated() {
-          if let point = points[joint] {
-            array[[frameIndex as NSNumber, 0, jointIndex as NSNumber]] = NSNumber(value: Float(point.location.x))
-            array[[frameIndex as NSNumber, 1, jointIndex as NSNumber]] = NSNumber(value: Float(point.location.y))
-            array[[frameIndex as NSNumber, 2, jointIndex as NSNumber]] = NSNumber(value: Float(point.confidence))
-          } else {
-            array[[frameIndex as NSNumber, 0, jointIndex as NSNumber]] = 0
-            array[[frameIndex as NSNumber, 1, jointIndex as NSNumber]] = 0
-            array[[frameIndex as NSNumber, 2, jointIndex as NSNumber]] = 0
-          }
-        }
-      }
-      let result = try handPoseModel.prediction(poses: array)
-      let label = result.label
-      let p = result.labelProbabilities
-      return p
-    } catch {
-      print("예측 에러")
-    }
-    return ["" : 0]
   }
 }
