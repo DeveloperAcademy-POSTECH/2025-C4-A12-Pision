@@ -20,7 +20,7 @@ extension AnalyzeView {
         Text("상세 정보")
           .font(.FontSystem.h2)
           .foregroundColor(.B_00)
-
+        
         VStack(alignment: .leading, spacing: 20) {
           Text("시간별 집중률")
             .font(.FontSystem.h4)
@@ -29,7 +29,6 @@ extension AnalyzeView {
               yAxisLabels
               focusChartWithLabels
             }
-              
             FadeOutOverlay()
             
             averageLineForFullChart // 평균선 오버레이
