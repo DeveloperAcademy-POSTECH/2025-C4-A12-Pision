@@ -41,9 +41,11 @@ extension GuidingPoseView {
         .foregroundStyle(.B_00)
         .padding(.bottom, 42)
       
-      VStack(spacing: 29) {
-        ForEach(GuidingPoseCaptionItems.allCases, id: \.self) {
-          GuidingPoseCaptionView(item: $0)
+      VStack(spacing: 0) {
+        VStack {
+          Image(.lefthand)
+            .resizable()
+            .frame(width: 181, height: 332)
         }
       }
       Spacer()

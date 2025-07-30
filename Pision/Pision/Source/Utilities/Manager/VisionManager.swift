@@ -243,18 +243,18 @@ extension VisionManager {
   }
   
   private func startFistTimer(label: String, confidence: Double) {
-    if label == "Fist" && confidence > 0.99 {
-      if self.firstWorkItem == nil {
-        let work = DispatchWorkItem { [weak self] in
-          self?.onFistDetected?()
+      if label == "Fist" && confidence > 0.99 {
+        if self.firstWorkItem == nil {
+          let work = DispatchWorkItem { [weak self] in
+            self?.onFistDetected?()
+          }
+          self.firstWorkItem = work
+          DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: work)
         }
-        self.firstWorkItem = work
-        DispatchQueue.main.asyncAfter(deadline: .now(), execute: work)
+      } else {
+        self.resetFistTimer()
       }
-    } else {
-      self.resetFistTimer()
     }
-  }
   
   private func resetFistTimer() {
     firstWorkItem?.cancel()

@@ -52,10 +52,11 @@ extension CustomNavigationbar {
               .frame(width: 24, height: 24)
           }
         } else {
-          Image(.fobiLogo)
-            .resizable()
-            .frame(width: 44, height: 22)
-          Spacer().frame(width: 24)
+          VStack {
+            Image(.fobiLogo)
+              .resizable()
+              .frame(width: 60, height: 25)
+          }.padding(10)
         }
         Spacer()
       }

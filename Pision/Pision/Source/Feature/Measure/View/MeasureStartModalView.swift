@@ -46,7 +46,7 @@ extension MeasureStartModalView {
         
         Spacer()
         
-        Image(showGestureGuide ? .guideHandIcon : .guideTrue)
+        Image(showGestureGuide ? .hand : .guideTrue)
           .resizable()
           .frame(width: showGestureGuide ? 132 : 164, height: showGestureGuide ? 180 : 164)
         
