@@ -9,8 +9,9 @@ import SwiftUI
 import Lottie
 
 //MARK: Var
-struct LottieView:UIViewRepresentable{
+struct CustomLottieView:UIViewRepresentable{
   private let animation: String
+  
   init(
     animation: String
   ) {
@@ -19,13 +20,13 @@ struct LottieView:UIViewRepresentable{
 }
 
 //MARK: View
-extension LottieView{
+extension CustomLottieView{
   
 }
 
 //MARK: func
-extension LottieView{
-  func makeUIView(context: UIViewRepresentableContext<LottieView>) -> UIView {
+extension CustomLottieView{
+  func makeUIView(context: UIViewRepresentableContext<CustomLottieView>) -> UIView {
     let view = UIView(frame: .zero)
     let animationView = LottieAnimationView(name:animation)
     
@@ -47,11 +48,11 @@ extension LottieView{
     return view
   }
   
-  func updateUIView(_ uiView: UIView, context: UIViewRepresentableContext<LottieView>) {
+  func updateUIView(_ uiView: UIView, context: UIViewRepresentableContext<CustomLottieView>) {
   }
 }
 
 
 #Preview {
-  LottieView(animation:"zipzoongi")
+  CustomLottieView(animation:"zipzoongi")
 }

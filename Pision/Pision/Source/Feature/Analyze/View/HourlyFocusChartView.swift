@@ -41,11 +41,6 @@ extension AnalyzeView {
         .cornerRadius(16)
       }
       .padding(.top, 13)
-//      .onAppear {
-//        print("🔵 View가 나타났습니다")
-//        print("taskData:", taskData.averageScore)
-//        print("taskData:", taskData.focusRatio  )
-//      }
     }
 
     /// y축 라벨 (100, 0)

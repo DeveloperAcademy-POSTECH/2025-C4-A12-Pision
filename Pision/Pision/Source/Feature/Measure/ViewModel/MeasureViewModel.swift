@@ -178,7 +178,7 @@ extension MeasureViewModel {
   
   func showModal() {
     timerPause()
-    finishModal = secondsElapsed < 5 ? .tooShort : .longEnough
+    finishModal = secondsElapsed < 600 ? .tooShort : .longEnough
   }
   
   func resetAutoDim() {

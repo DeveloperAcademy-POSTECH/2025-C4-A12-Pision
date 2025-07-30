@@ -34,7 +34,8 @@ struct HomeView: View {
       Image("background")
         .resizable()
         .ignoresSafeArea()
-      VStack(spacing: 24) {
+      VStack() {
+        CustomNavigationbar(title: "", showBackButton: false, backButtonAction: {})
         VStack{
           HStack{
             HStack{
@@ -67,7 +68,7 @@ struct HomeView: View {
         }
         
         VStack{
-          LottieView(animation:"main_lotie")
+          CustomLottieView(animation:"main_lotie")
             .frame(width: 300, height: 300)
         }
         VStack(alignment: .leading) {
