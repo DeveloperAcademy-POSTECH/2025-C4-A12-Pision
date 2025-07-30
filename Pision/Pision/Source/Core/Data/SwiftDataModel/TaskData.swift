@@ -18,10 +18,12 @@ class TaskData {
   var focusTime: Int
   var durationTime: Int
   var snoozeImageDatas: [Data]
+  var targetScore: Int?  // 목표 점수 (옵셔널)
   
   @Relationship(deleteRule: .cascade) var avgCoreDatas: [AvgCoreScore]  // 30초 단위 Core 점수들
   @Relationship(deleteRule: .cascade) var avgAuxDatas: [AvgAuxScore]    // 30초 단위 Aux 점수들
   
+  // 기존 생성자 (기존 코드 호환성 유지)
   init(
     startTime: Date,
     endTime: Date,
@@ -42,6 +44,32 @@ class TaskData {
     self.snoozeImageDatas = snoozeImageDatas
     self.avgCoreDatas = avgCoreDatas
     self.avgAuxDatas = avgAuxDatas
+    self.targetScore = nil  // 기본값 nil
+  }
+  
+  // 목표 점수를 포함한 새로운 생성자
+  init(
+    startTime: Date,
+    endTime: Date,
+    averageScore: Float,
+    focusRatio: [Float],
+    focusTime: Int,
+    durationTime: Int,
+    snoozeImageDatas: [Data],
+    avgCoreDatas: [AvgCoreScore],
+    avgAuxDatas: [AvgAuxScore],
+    targetScore: Int?
+  ) {
+    self.startTime = startTime
+    self.endTime = endTime
+    self.averageScore = averageScore
+    self.focusRatio = focusRatio
+    self.focusTime = focusTime
+    self.durationTime = durationTime
+    self.snoozeImageDatas = snoozeImageDatas
+    self.avgCoreDatas = avgCoreDatas
+    self.avgAuxDatas = avgAuxDatas
+    self.targetScore = targetScore
   }
 }
 
@@ -89,5 +117,24 @@ extension TaskData {
   /// 30초 구간의 총 개수를 반환합니다.
   var segmentCount: Int {
     return focusRatio.count
+  }
+  
+  /// 목표 달성도를 계산합니다 (targetScore가 있을 때만).
+  func calculateSimilarityScore() -> Int? {
+    guard let target = targetScore else { return nil }
+    
+    let difference = abs(averageScore - Float(target))
+    
+    switch difference {
+    case 0...5: return 100
+    case 5.1...10: return 90
+    case 10.1...15: return 80
+    case 15.1...20: return 70
+    case 20.1...25: return 60
+    case 25.1...30: return 50
+    case 30.1...40: return 40
+    case 40.1...50: return 30
+    default: return 20
+    }
   }
 }

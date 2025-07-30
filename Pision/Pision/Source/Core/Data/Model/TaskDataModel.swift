@@ -17,6 +17,56 @@ struct TaskDataModel {
   let snoozeImageDatas: [Data]
   let coreScoreSegments: [CoreScoreModel]    // 30초 단위 Core 점수들
   let auxScoreSegments: [AuxScoreModel]      // 30초 단위 Aux 점수들
+  let targetScore: Int?                      // 목표 점수 (옵셔널)
+  
+  // 기존 생성자 (기존 코드 호환성 유지)
+  init(
+    startTime: Date,
+    endTime: Date,
+    averageScore: Float,
+    focusRatio: [Float],
+    focusTime: Int,
+    durationTime: Int,
+    snoozeImageDatas: [Data],
+    coreScoreSegments: [CoreScoreModel],
+    auxScoreSegments: [AuxScoreModel]
+  ) {
+    self.startTime = startTime
+    self.endTime = endTime
+    self.averageScore = averageScore
+    self.focusRatio = focusRatio
+    self.focusTime = focusTime
+    self.durationTime = durationTime
+    self.snoozeImageDatas = snoozeImageDatas
+    self.coreScoreSegments = coreScoreSegments
+    self.auxScoreSegments = auxScoreSegments
+    self.targetScore = nil  // 기본값 nil
+  }
+  
+  // 목표 점수를 포함한 새로운 생성자
+  init(
+    startTime: Date,
+    endTime: Date,
+    averageScore: Float,
+    focusRatio: [Float],
+    focusTime: Int,
+    durationTime: Int,
+    snoozeImageDatas: [Data],
+    coreScoreSegments: [CoreScoreModel],
+    auxScoreSegments: [AuxScoreModel],
+    targetScore: Int?
+  ) {
+    self.startTime = startTime
+    self.endTime = endTime
+    self.averageScore = averageScore
+    self.focusRatio = focusRatio
+    self.focusTime = focusTime
+    self.durationTime = durationTime
+    self.snoozeImageDatas = snoozeImageDatas
+    self.coreScoreSegments = coreScoreSegments
+    self.auxScoreSegments = auxScoreSegments
+    self.targetScore = targetScore
+  }
 }
 
 // MARK: - TaskDataModel 확장 메서드
@@ -58,5 +108,24 @@ extension TaskDataModel {
     let totalScores = totalScorePerSegment()
     let focusedSegments = totalScores.filter { $0 >= threshold }.count
     return focusedSegments * 30 // 각 구간이 30초
+  }
+  
+  /// 목표 달성도를 계산합니다 (targetScore가 있을 때만).
+  func calculateSimilarityScore() -> Int? {
+    guard let target = targetScore else { return nil }
+    
+    let difference = abs(averageScore - Float(target))
+    
+    switch difference {
+    case 0...5: return 100
+    case 5.1...10: return 90
+    case 10.1...15: return 80
+    case 15.1...20: return 70
+    case 20.1...25: return 60
+    case 25.1...30: return 50
+    case 30.1...40: return 40
+    case 40.1...50: return 30
+    default: return 20
+    }
   }
 }

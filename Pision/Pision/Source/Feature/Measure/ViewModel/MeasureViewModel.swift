@@ -68,6 +68,14 @@ final class MeasureViewModel: ObservableObject {
   private var measurementStartTime: Date?
   private var snoozeImageDatas: [Data] = []
   
+  // MARK: - 목표 점수 관리
+  private let targetScoreManager = TargetScoreManager.shared
+  
+  /// 현재 목표 점수를 반환합니다
+  var currentTargetScore: Int {
+    return targetScoreManager.getCurrentTargetScore()
+  }
+  
   // MARK: - General
   // Manager
   private let cameraManager: CameraManager
@@ -310,6 +318,9 @@ extension MeasureViewModel {
     let averageScore = calculateOverallAverageScore()
     let focusTime = calculateFocusTime()
     
+    // 전역 목표 점수 가져오기
+    let targetScore = targetScoreManager.getCurrentTargetScore()
+    
     let taskData = TaskDataModel(
       startTime: startTime,
       endTime: endTime,
@@ -319,7 +330,8 @@ extension MeasureViewModel {
       durationTime: secondsElapsed,
       snoozeImageDatas: snoozeImageDatas,
       coreScoreSegments: coreScoreSegments,
-      auxScoreSegments: auxScoreSegments
+      auxScoreSegments: auxScoreSegments,
+      targetScore: targetScore > 0 ? targetScore : nil // 목표 점수 포함
     )
     
     self.taskData = taskData
@@ -333,5 +345,13 @@ extension MeasureViewModel {
     print("   - 평균 점수: \(String(format: "%.1f", averageScore))점")
     print("   - 집중 시간: \(focusTime)초")
     print("   - 집중 비율: \(String(format: "%.1f", taskData.calculateFocusRatio() * 100))%")
+    if let target = taskData.targetScore {
+      let similarity = taskData.calculateSimilarityScore() ?? 0
+      print("   - 목표 점수: \(target)%")
+      print("   - 목표 달성도: \(similarity)점")
+    }
+    
+    // 측정 완료 후 목표 점수 초기화
+    targetScoreManager.resetTargetScore()
   }
 }

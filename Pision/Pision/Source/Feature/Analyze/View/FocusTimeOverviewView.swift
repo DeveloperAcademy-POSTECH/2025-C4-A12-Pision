@@ -16,9 +16,17 @@ extension AnalyzeView {
     var body: some View {
       VStack(alignment: .leading, spacing: 0) {
         timeAndScoreText
-          .padding(.bottom, 50)
+          .padding(.bottom, 30)
+        
         progressBarWithOverlay
           .padding(.bottom, 15)
+        
+        // 목표 달성도 섹션 추가
+        if let targetScore = taskData.targetScore {
+          targetAchievementSection(targetScore: targetScore)
+            .padding(.bottom, 20)
+        }
+        
         focusAndTotalTime
       }
       .padding(20)
@@ -53,6 +61,65 @@ extension AnalyzeView {
           )
           .foregroundColor(Color.B_10)
         }
+      }
+    }
+    
+    // MARK: - 목표 달성도 섹션
+    private func targetAchievementSection(targetScore: Int) -> some View {
+      let actualScore = Int(taskData.averageScore)
+      let difference = actualScore - targetScore
+      
+      return VStack(alignment: .leading, spacing: 12) {
+        VStack(spacing: 8) {
+          // 목표 vs 실제 점수 비교
+          HStack {
+            VStack(alignment: .leading, spacing: 4) {
+              Text("목표")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.B_30)
+              Text("\(targetScore)%")
+                .font(.system(size: 20, weight: .bold))
+                .foregroundColor(.BR_00)
+            }
+            
+            Spacer()
+            
+            // 화살표와 차이
+            VStack(spacing: 4) {
+              Image(systemName: difference >= 0 ? "arrow.up.right" : "arrow.down.right")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(difference >= 0 ? .green : .red)
+              
+              Text("\(difference >= 0 ? "+" : "")\(difference)점")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(difference >= 0 ? .green : .red)
+            }
+            
+            Spacer()
+            
+            VStack(alignment: .trailing, spacing: 4) {
+              Text("실제")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.B_30)
+              Text("\(actualScore)%")
+                .font(.system(size: 20, weight: .bold))
+                .foregroundColor(.B_00)
+            }
+          }
+        }
+        .padding(16)
+        .background(Color.gray.opacity(0.05))
+        .cornerRadius(12)
+      }
+    }
+    
+    // MARK: - 유사도 점수에 따른 색상 반환
+    private func getSimilarityColor(score: Int) -> Color {
+      switch score {
+      case 80...100: return .green
+      case 60...79: return .orange
+      case 40...59: return .yellow
+      default: return .red
       }
     }
     

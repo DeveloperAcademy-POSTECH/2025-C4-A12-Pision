@@ -44,6 +44,7 @@ final class SwiftDataManager {
     let calculatedFocusTime = taskData.calculateFocusTime()
     let totalScorePerSegment = taskData.totalScorePerSegment()
     
+    // 목표 점수 포함하여 TaskData 생성
     let taskDataEntity = TaskData(
       startTime: taskData.startTime,
       endTime: taskData.endTime,
@@ -53,7 +54,8 @@ final class SwiftDataManager {
       durationTime: taskData.durationTime,
       snoozeImageDatas: taskData.snoozeImageDatas,
       avgCoreDatas: coreModels,
-      avgAuxDatas: auxModels
+      avgAuxDatas: auxModels,
+      targetScore: taskData.targetScore // 목표 점수 추가
     )
     
     context.insert(taskDataEntity)
@@ -67,6 +69,15 @@ final class SwiftDataManager {
       print("   - 집중 비율: \(String(format: "%.1f", calculatedFocusRatio * 100))%")
       print("   - 30초 구간 수: \(taskData.coreScoreSegments.count)개")
       print("   - 평균 점수: \(String(format: "%.1f", taskData.averageScore))")
+      
+      // 목표 점수 정보 출력
+      if let targetScore = taskData.targetScore {
+        let similarity = taskData.calculateSimilarityScore() ?? 0
+        print("   - 목표 점수: \(targetScore)%")
+        print("   - 목표 달성도: \(similarity)점")
+      } else {
+        print("   - 목표 점수: 없음 (기존 데이터)")
+      }
     } catch {
       print("❌ SwiftData 저장 실패: \(error)")
     }
@@ -95,6 +106,21 @@ final class SwiftDataManager {
         🔢 30초 구간 수: \(task.segmentCount)개
         📸 스누즈 사진: \(task.snoozeImageDatas.count)장
         """)
+        
+        // 목표 점수 및 달성도 정보 출력
+        if let targetScore = task.targetScore {
+          let similarity = task.calculateSimilarityScore() ?? 0
+          let difference = Int(task.averageScore) - targetScore
+          print("""
+          🎯 목표 달성 정보:
+          - 목표 점수: \(targetScore)%
+          - 실제 점수: \(Int(task.averageScore))%
+          - 점수 차이: \(difference >= 0 ? "+" : "")\(difference)점
+          - 목표 달성도: \(similarity)점
+          """)
+        } else {
+          print("🎯 목표 점수: 없음 (기존 데이터)")
+        }
         
         // 구간별 점수 요약 (최고/최저/평균)
         if !task.focusRatio.isEmpty {
@@ -152,12 +178,14 @@ final class SwiftDataManager {
   ///   - context: SwiftData의 `ModelContext` 인스턴스
   ///   - minDuration: 최소 측정 시간 (초, 기본값: 0)
   ///   - minScore: 최소 평균 점수 (기본값: 0.0)
+  ///   - hasTargetScore: 목표 점수가 있는 데이터만 (기본값: nil - 모든 데이터)
   ///   - limit: 최대 결과 개수 (기본값: nil - 제한 없음)
   /// - Returns: 필터링된 TaskData 배열
   func fetchTaskData(
     context: ModelContext,
     minDuration: Int = 0,
     minScore: Float = 0.0,
+    hasTargetScore: Bool? = nil,
     limit: Int? = nil
   ) -> [TaskData] {
     let fetchDescriptor = FetchDescriptor<TaskData>()
@@ -168,7 +196,14 @@ final class SwiftDataManager {
       // 조건 필터링 및 정렬
       let filteredResults = results
         .filter { task in
-          task.durationTime >= minDuration && task.averageScore >= minScore
+          var matches = task.durationTime >= minDuration && task.averageScore >= minScore
+          
+          // 목표 점수 필터링
+          if let hasTarget = hasTargetScore {
+            matches = matches && (hasTarget ? task.targetScore != nil : task.targetScore == nil)
+          }
+          
+          return matches
         }
         .sorted { $0.startTime > $1.startTime } // 최신순 정렬
       
@@ -176,6 +211,13 @@ final class SwiftDataManager {
       let finalResults = limit != nil ? Array(filteredResults.prefix(limit!)) : filteredResults
       
       print("📋 필터링 결과: \(finalResults.count)개 (전체: \(results.count)개)")
+      
+      // 목표 점수 통계
+      let withTarget = finalResults.filter { $0.targetScore != nil }.count
+      let withoutTarget = finalResults.count - withTarget
+      print("   - 목표 점수 있음: \(withTarget)개")
+      print("   - 목표 점수 없음: \(withoutTarget)개")
+      
       return finalResults
       
     } catch {
