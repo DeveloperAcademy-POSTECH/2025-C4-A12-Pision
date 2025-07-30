@@ -83,7 +83,7 @@ extension LoadingView {
         DispatchQueue.main.async {
           if let recentTask = allTasks.first {
             coordinator.push(.analyze(recentTask, true))
-          } 
+          }
         }
       } else {
         progress += 1
