@@ -60,7 +60,7 @@ struct AuxScoreView: View {
       Spacer()
 
       HStack(spacing: 16) {
-        Text("\(viewModel.averageScoreText)점")
+        Text("\(viewModel.averageScoreText)%")
           .font(.spoqaHanSansNeo(type: .bold, size: 28))
           .foregroundColor(Color.BR_00)
 
