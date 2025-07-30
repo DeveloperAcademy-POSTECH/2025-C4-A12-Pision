@@ -46,13 +46,41 @@ extension AnalyzeView {
           .foregroundColor(Color.B_10)
 
           (
-            Text("매우 준수한 상태")
+            Text(getFocusMessage(for: Int(taskData.averageScore)).0)
               .font(.FontSystem.h2) +
-            Text("입니다.")
+            Text(getFocusMessage(for: Int(taskData.averageScore)).1)
               .font(.spoqaHanSansNeo(type: .regular, size: 20))
           )
           .foregroundColor(Color.B_10)
         }
+      }
+    }
+    
+    // MARK: - 집중률 메시지 함수
+    private func getFocusMessage(for score: Int) -> (String, String) {
+      switch score {
+      case 0...9:
+        return ("금붕어보다 못한 집중력", "이네요.")
+      case 10...19:
+        return ("코끼리의 집중력과 유사", "합니다.")
+      case 20...29:
+        return ("산만", "하네요.")
+      case 30...39:
+        return ("개선", "해야 합니다.")
+      case 40...49:
+        return ("초등학생과 비슷", "합니다.")
+      case 50...59:
+        return ("평범한 직장인 수준", "입니다.")
+      case 60...69:
+        return ("대학생다운 집중력", "입니다.")
+      case 70...79:
+        return ("수험생 못지않은 집중력", "입니다.")
+      case 80...89:
+        return ("독서광 수준의 집중력", "입니다.")
+      case 90...100:
+        return ("수도승 같은 집중력", "입니다.")
+      default:
+        return ("측정 불가", "입니다.")
       }
     }
 
