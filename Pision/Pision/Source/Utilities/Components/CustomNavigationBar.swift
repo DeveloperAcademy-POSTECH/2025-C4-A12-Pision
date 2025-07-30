@@ -55,8 +55,11 @@ extension CustomNavigationbar {
           VStack {
             Image(.fobiLogo)
               .resizable()
-              .frame(width: 60, height: 25)
-          }.padding(10)
+              .aspectRatio(contentMode: .fit)
+              .frame(width: 50)
+          }
+          .padding(.top, 10)
+          .padding(.leading, 10)
         }
         Spacer()
       }

@@ -34,48 +34,38 @@ struct HomeView: View {
       Image("background")
         .resizable()
         .ignoresSafeArea()
-      VStack() {
+      VStack(spacing: 0) {
         CustomNavigationbar(title: "", showBackButton: false, backButtonAction: {})
-        VStack{
-          HStack{
-            HStack{
-              Spacer()
-            }.padding(10)
-          }
-        }
-        .padding(.top)
-        .padding(.leading)
-        .padding(.trailing)
-        VStack{
-          
+        
+        // 집중 시간 텍스트를 더 위로 이동
+        VStack(spacing: 4) {
           Text("오늘 집중 시간은")
-            .font(.FontSystem.h1)
+            .font(.spoqaHanSansNeo(type: .regular, size: 24))
             .foregroundStyle(.BR_00)
           
           Text("\(secondsToHourMinute(correctedFocusTimeToday)) 이에요")
             .font(.FontSystem.h1)
             .foregroundStyle(.BR_00)
           
-          Text("조금 더 집중할 수 있는 환경을")
+          Text("조금 더 집중할 수 있는 환경을\n만들어 보아요!")
             .font(.FontSystem.b1)
             .multilineTextAlignment(.center)
             .foregroundStyle(.BR_00)
-          
-          Text("만들어 보아요!")
-            .font(.FontSystem.b1)
-            .multilineTextAlignment(.center)
-            .foregroundStyle(.BR_00)
+        }
+        .padding(.top, 40)
+        
+        // 로티 애니메이션
+        VStack {
+          CustomLottieView(animation:"main_lotie")
+            .frame(width: 260, height: 260)
         }
         
-        VStack{
-          CustomLottieView(animation:"main_lotie")
-            .frame(width: 300, height: 300)
-        }
-        VStack(alignment: .leading) {
+        // 최근 측정 섹션
+        VStack(alignment: .leading, spacing: 16) {
           Text("최근 측정")
-            .font(.FontSystem.h3)
+            .font(.system(size: 20, weight: .bold))
             .foregroundStyle(.B_00)
-            .padding(.horizontal)
+            .padding(.horizontal, 20)
           
           if let latestTask = todayTasks.first {
             Button{
@@ -87,18 +77,18 @@ struct HomeView: View {
             }
           } else {
             Text("아직 오늘 측정된 기록이 없어요.")
-              .font(.FontSystem.b2)
+              .font(.system(size: 16, weight: .regular))
               .foregroundStyle(.B_30)
-              .frame(height: 120) // HomeRowView의 고정 예상 높이
+              .frame(height: 120)
               .frame(maxWidth: .infinity)
               .padding()
               .background(RoundedRectangle(cornerRadius: 12).fill(.white))
-              .padding(.horizontal)
+              .padding(.horizontal, 24)
           }
         }
-        Spacer()
-        Spacer()
-        Spacer()
+        .padding(.top, 30)
+        .padding(.bottom, 20)
+        
         Spacer()
       }
     }
@@ -158,10 +148,6 @@ struct HomeView: View {
     return totalFocus
   }
 }
-
-
-
-
 
 // MARK: - 예시 데이터
 extension HomeView {

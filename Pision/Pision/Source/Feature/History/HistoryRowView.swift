@@ -12,10 +12,6 @@ struct HistoryRowView: View {
   @Binding var isTabed: Bool
   @EnvironmentObject private var coordinator: Coordinator
   let task: TaskData
-  var avgFocus: Int {
-    guard task.durationTime > 0 else { return 0 }
-    return Int((Double(task.focusTime) / Double(task.durationTime)) * 100)
-  }
 }
 
 // MARK: - View
@@ -48,12 +44,12 @@ extension HistoryRowView {
               .font(.FontSystem.b1)
               .foregroundStyle(.B_40)
             Spacer()
-            Text("\(avgFocus)%")
+            Text("\(Int(task.averageScore))%")
               .font(.FontSystem.h2)
               .foregroundStyle(.black)
           }
           
-          CustomProgressBar(value: Double(avgFocus)/100.0)
+          CustomProgressBar(value: Double(task.averageScore))
           
           HStack() {
             RoundedRectangle(cornerRadius: 2)

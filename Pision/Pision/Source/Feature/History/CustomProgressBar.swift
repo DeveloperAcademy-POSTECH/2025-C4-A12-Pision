@@ -12,13 +12,21 @@ struct CustomProgressBar: View {
 
   var body: some View {
     GeometryReader { geo in
-      ZStack(alignment: .leading) {
+      ZStack {
         Capsule()
-          .foregroundStyle(.BR_50)
-        Capsule()
-          .foregroundStyle(.BR_00)
-          .frame(width: geo.size.width * value)
+          .fill(Color.BR_50)
+          .frame(height: 8)
+
+        GeometryReader { geometry in
+          Capsule()
+            .fill(Color.BR_00)
+            .frame(
+              width: geometry.size.width * CGFloat(value / 100),
+              height: 8
+            )
+        }
       }
+      .frame(height: 10)
     }
     .frame(height: 8)
     .frame(maxWidth: .infinity)

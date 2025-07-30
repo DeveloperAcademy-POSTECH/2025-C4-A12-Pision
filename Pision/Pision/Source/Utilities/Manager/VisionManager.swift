@@ -98,6 +98,12 @@ extension VisionManager {
   
   /// 현재 30초 구간을 완료하고 점수를 계산합니다.
   private func completeCurrentSegment() {
+    // 30초 구간이 완료되지 않은 경우 처리하지 않음
+    guard !currentSegmentEars.isEmpty else {
+      print("⚠️ 빈 구간이므로 점수를 계산하지 않습니다.")
+      return
+    }
+    
     // 현재 구간의 데이터로 점수 계산
     let coreScore = scoreManager.calculateCore(
       from: currentSegmentEars,
@@ -122,6 +128,8 @@ extension VisionManager {
     mlPredictions.append(contentsOf: currentSegmentMLPredictions)
     blinkCount += currentSegmentBlinkCount
     
+    print("✅ 30초 구간 #\(coreScoreSegments.count) 완료 - Core: \(String(format: "%.1f", coreScore.coreScore)), Aux: \(String(format: "%.1f", auxScore.auxScore))")
+    
     // 콜백 호출
     onSegmentCompleted?(coreScore, auxScore)
     
@@ -134,11 +142,20 @@ extension VisionManager {
   
   /// 측정 완료 시 마지막 구간 처리
   func finalizeMeasurement() {
-    // 마지막 구간이 30초 미만이어도 처리
+    // 30초 미만의 마지막 구간은 저장하지 않고 제거
     if !currentSegmentEars.isEmpty {
-      completeCurrentSegment()
+      print("⚠️ 마지막 \(currentSegmentEars.count)개 프레임의 미완료 구간은 저장하지 않습니다.")
+      
+      // 현재 구간 데이터 초기화 (저장하지 않음)
+      currentSegmentEars.removeAll()
+      currentSegmentYaws.removeAll()
+      currentSegmentMLPredictions.removeAll()
+      currentSegmentBlinkCount = 0
     }
+    
     stopSegmentTimer()
+    
+    print("📊 최종 저장된 30초 구간 수: \(coreScoreSegments.count)개")
   }
   
   /// 얼굴의 랜드마크 정보를 처리하여 고개 회전 각도(YAW), 눈 비율(EAR), 눈 깜빡임 여부를 계산합니다.
