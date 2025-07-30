@@ -10,6 +10,9 @@ import SwiftUI
 // MARK: - Var
 struct GuidingPoseView: View {
   @EnvironmentObject private var coordinator: Coordinator
+  @StateObject private var targetScoreManager = TargetScoreManager.shared
+  @State private var showTargetScore = false
+  @State private var targetScore = 0
 }
 
 // MARK: - View
@@ -26,6 +29,9 @@ extension GuidingPoseView {
       }
     }
     .navigationBarBackButtonHidden()
+    .onAppear {
+      generateAndShowTargetScore()
+    }
   }
   
   private var GuidePoseContentView: some View {
@@ -39,7 +45,26 @@ extension GuidingPoseView {
         .multilineTextAlignment(.center)
         .font(.FontSystem.b1)
         .foregroundStyle(.B_00)
-        .padding(.bottom, 42)
+        .padding(.bottom, 20)
+      
+      // 목표 집중도 표시
+      if showTargetScore {
+        VStack(spacing: 6) {
+          HStack {
+            Text("당신의 목표 집중도")
+              .font(.system(size: 14, weight: .bold))
+              .foregroundStyle(.BR_00)
+            
+            Text("\(targetScore)%")
+              .font(.system(size: 20, weight: .bold))
+              .foregroundStyle(.BR_00)
+              .padding(.horizontal, 12)
+              .padding(.vertical, 6)
+              .background(.BR_00.opacity(0.1))
+              .clipShape(Capsule())
+          }
+        }
+      }
       
       VStack(spacing: 0) {
         VStack {
@@ -61,6 +86,19 @@ extension GuidingPoseView {
     .frame(maxWidth: 353, maxHeight: 671)
     .background(.W_00)
     .clipShape(RoundedRectangle(cornerRadius: 15.27))
+  }
+}
+
+// MARK: - Private Functions
+extension GuidingPoseView {
+  private func generateAndShowTargetScore() {
+    // 목표 점수 생성 (40~100 사이의 짝수)
+    targetScore = targetScoreManager.generateTargetScore()
+    
+    // 0.5초 후에 애니메이션과 함께 표시
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+      showTargetScore = true
+    }
   }
 }
 

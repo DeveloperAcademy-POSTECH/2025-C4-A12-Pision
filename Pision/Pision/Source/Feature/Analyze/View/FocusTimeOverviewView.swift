@@ -16,7 +16,7 @@ extension AnalyzeView {
     var body: some View {
       VStack(alignment: .leading, spacing: 0) {
         timeAndScoreText
-          .padding(.bottom, 25)
+          .padding(.bottom, 50)
         progressBarWithOverlay
           .padding(.bottom, 15)
         focusAndTotalTime
