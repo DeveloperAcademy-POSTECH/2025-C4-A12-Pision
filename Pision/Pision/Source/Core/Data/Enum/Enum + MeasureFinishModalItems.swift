@@ -5,27 +5,25 @@
 //  Created by 여성일 on 7/28/25.
 //
 
-enum MeasureFinishModalItems: Identifiable {
-  case longEnough
-  case tooShort
+enum MeasureFinishModalItems {
+  case shortTime  // 1분 미만
+  case longEnough // 1분 이상
   
-  var id: Int { hashValue }
-
   var title: String {
     switch self {
+    case .shortTime:
+      return "측정 시간이 짧아요"
     case .longEnough:
-      return "측정을 종료하시겠습니까"
-    case .tooShort:
-      return "앗! 아직 시간이 조금 부족해요"
+      return "측정을 종료할까요?"
     }
   }
   
   var caption: String {
     switch self {
+    case .shortTime:
+      return "1분 이상 측정해야 결과를 확인할 수 있어요.\n그래도 종료할까요?"
     case .longEnough:
-      return "종료후에는 이어서 할 수 없어요\n그래도 종료할까요?"
-    case .tooShort:
-      return "10분 이상 측정해야 결과를 확인할 수 있어요.\n그래도 종료할까요?"
+      return "지금까지의 측정 결과를\n확인하실 수 있어요."
     }
   }
 }

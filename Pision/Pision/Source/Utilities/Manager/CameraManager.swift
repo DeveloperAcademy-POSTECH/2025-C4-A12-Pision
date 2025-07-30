@@ -64,15 +64,17 @@ extension CameraManager {
   }
   
   /// 측정을 시작합니다.
-  /// 내부 상태 변수 `isMeasuring`을 `true`로 설정합니다.
+  /// 내부 상태 변수 `isMeasuring`을 `true`로 설정하고 30초 단위 측정을 시작합니다.
   func startMeasuring() {
     isMeasuring = true
+    visionManager.startSegmentMeasurement()
   }
   
   /// 측정을 중단합니다.
-  /// 내부 상태 변수 `isMeasuring`을 `false`로 설정합니다.
+  /// 내부 상태 변수 `isMeasuring`을 `false`로 설정하고 30초 단위 측정을 중지합니다.
   func stopMeasuring() {
     isMeasuring = false
+    visionManager.finalizeMeasurement()
   }
   
   /// 카메라 권한을 요청하고, 허용된 경우 세션 구성을 진행합니다.

@@ -78,9 +78,9 @@ extension MeasureRecordView {
             type: .longEnough,
             leftAction: { longEnoughLeftAction() },
             rightAcition: { longEnoughRightAction() })
-        case .tooShort:
+        case .shortTime:
           MeasureFinishModal(
-            type: .tooShort,
+            type: .shortTime,
             leftAction: { shortLeftAction() },
             rightAcition: { shortRightAction() }
           )

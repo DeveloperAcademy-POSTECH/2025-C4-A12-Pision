@@ -1,5 +1,5 @@
 //
-//  MainViewModel.swift
+//  MeasureViewModel.swift
 //  PisionTest2
 //
 //  Created by 여성일 on 7/13/25.
@@ -59,16 +59,15 @@ final class MeasureViewModel: ObservableObject {
   // MARK: - Measure Var
   @Published private(set) var currentFocusRatio: Float = 0.0
   @Published var finishModal: MeasureFinishModalItems? = nil
-  private var coreScoreHistory: [CoreScoreModel] = []
-  private var auxScoreHistory: [AuxScoreModel] = []
-  private var coreScoreHistory10Minute: [AvgCoreScoreModel] = []
-  private var auxScoreHistory10Minute: [AvgAuxScoreModel] = []
+  
+  // 30초 단위로 수집되는 점수들
+  @Published private(set) var coreScoreSegments: [CoreScoreModel] = []
+  @Published private(set) var auxScoreSegments: [AuxScoreModel] = []
+  
   @Published private(set) var taskData: TaskDataModel?
-  private var focusTime: Int = 0
-  private var focusRatios: [Float] = []
+  private var measurementStartTime: Date?
   private var snoozeImageDatas: [Data] = []
   
-
   // MARK: - General
   // Manager
   private let cameraManager: CameraManager
@@ -89,6 +88,7 @@ final class MeasureViewModel: ObservableObject {
     
     bindTimer()
     bindGuiding()
+    bindVisionManager()
     
     visionManager.onSnoozeDetected = { [weak self] detected in
       guard detected else { return }
@@ -123,16 +123,6 @@ extension MeasureViewModel {
       guard let self = self else { return }
       DispatchQueue.main.async {
         self.secondsElapsed = sec
-        
-        if sec % 30 == 0 {
-          self.calculateScores()
-        }
-        
-        if sec % 600 == 0 {
-          DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            self.save10MinuteAverage()
-          }
-        }
       }
     }
     
@@ -145,10 +135,19 @@ extension MeasureViewModel {
   }
   
   func timerStart() {
+    measurementStartTime = Date()
+    
+    // 모든 데이터 초기화
+    visionManager.reset()
+    coreScoreSegments.removeAll()
+    auxScoreSegments.removeAll()
+    snoozeImageDatas.removeAll()
+    currentFocusRatio = 0.0
+    
     timerManager.timerStart()
     timerState = .running
     timerManager.startAutoDim()
-    cameraManager.startMeasuring()
+    cameraManager.startMeasuring() // VisionManager의 30초 타이머도 자동 시작
   }
   
   func timerPause() {
@@ -169,7 +168,7 @@ extension MeasureViewModel {
     timerManager.timerStop()
     timerState = .stopped
     timerManager.cancelAutoDim()
-    cameraManager.stopMeasuring()
+    cameraManager.stopMeasuring() // VisionManager의 finalizeMeasurement도 호출
   }
   
   func saveData(context: ModelContext) {
@@ -178,12 +177,31 @@ extension MeasureViewModel {
   
   func showModal() {
     timerPause()
-    finishModal = secondsElapsed < 600 ? .tooShort : .longEnough
+    finishModal = secondsElapsed < 60 ? .shortTime : .longEnough // 1분으로 변경
   }
   
   func resetAutoDim() {
     timerManager.resetAutoDim()
     isShouldDimScreen = false
+  }
+}
+
+// MARK: - Vision Manager Binding
+extension MeasureViewModel {
+  private func bindVisionManager() {
+    // 30초 구간 완료 콜백
+    visionManager.onSegmentCompleted = { [weak self] coreScore, auxScore in
+      DispatchQueue.main.async {
+        self?.coreScoreSegments.append(coreScore)
+        self?.auxScoreSegments.append(auxScore)
+        
+        // 현재 구간의 총 점수 계산
+        let totalScore = coreScore.coreScore * 0.7 + auxScore.auxScore * 0.3
+        self?.currentFocusRatio = totalScore
+        
+        print("✅ 30초 구간 완료 - Core: \(String(format: "%.1f", coreScore.coreScore)), Aux: \(String(format: "%.1f", auxScore.auxScore)), Total: \(String(format: "%.1f", totalScore))")
+      }
+    }
   }
 }
 
@@ -254,90 +272,66 @@ extension MeasureViewModel {
   }
 }
 
-// MARK: - Measure
+// MARK: - Measure & Save
 extension MeasureViewModel {
-  private func calculateScores() {
-    let core = scoreManager.calculateCore(
-      from: visionManager.ears,
-      yaws: visionManager.yaws,
-      blinkCount: visionManager.blinkCount
-    )
-    let aux = scoreManager.calculateAux(
-      from: visionManager.ears,
-      yaws: visionManager.yaws,
-      ml: visionManager.mlPredictions,
-      blinkCount: visionManager.blinkCount
-    )
-    coreScoreHistory.append(core)
-    auxScoreHistory.append(aux)
+  /// 전체 측정 데이터를 기반으로 최종 평균 점수를 계산합니다.
+  private func calculateOverallAverageScore() -> Float {
+    guard !coreScoreSegments.isEmpty,
+          coreScoreSegments.count == auxScoreSegments.count else { return 0.0 }
     
-    let total = scoreManager.calculateTotal(core: core, aux: aux)
+    let totalScores = zip(coreScoreSegments, auxScoreSegments).map { core, aux in
+      core.coreScore * 0.7 + aux.auxScore * 0.3
+    }
     
-    currentFocusRatio = total
-    if total >= 60 { focusTime += 30 }
-    
-    visionManager.reset()
+    return totalScores.reduce(0, +) / Float(totalScores.count)
   }
   
-  private func save10MinuteAverage() {
-    let last20Core = coreScoreHistory.suffix(20)
-    let last20Aux = auxScoreHistory.suffix(20)
-    guard last20Core.count == 20,
-          last20Aux.count == 20 else { return }
+  /// 집중 시간을 계산합니다 (점수 60점 이상인 구간).
+  private func calculateFocusTime(threshold: Float = 60.0) -> Int {
+    guard !coreScoreSegments.isEmpty,
+          coreScoreSegments.count == auxScoreSegments.count else { return 0 }
     
-    let avgCore = scoreManager.averageCore(from: Array(last20Core))
-    coreScoreHistory10Minute.append(avgCore)
+    let focusedSegments = zip(coreScoreSegments, auxScoreSegments).compactMap { core, aux -> Bool in
+      let totalScore = core.coreScore * 0.7 + aux.auxScore * 0.3
+      return totalScore >= threshold
+    }.filter { $0 }.count
     
-    let avgAux = scoreManager.averageAux(from: Array(last20Aux))
-    auxScoreHistory10Minute.append(avgAux)
-    
-    let focusCount = zip(last20Core, last20Aux)
-      .filter { scoreManager.calculateTotal(core: $0.0, aux: $0.1) >= 75 }
-      .count
-    
-    let focusRatio = Float(focusCount * 30) / 600 * 100
-    focusRatios.append(focusRatio)
+    return focusedSegments * 30 // 각 구간이 30초
   }
   
-  private func saveRemainingAverage() {
-    let remainderCount = min(coreScoreHistory.count % 20, auxScoreHistory.count % 20)
-    guard remainderCount > 0 else { return }
-    
-    let remainderCore = coreScoreHistory.suffix(remainderCount)
-    let remainderAux = auxScoreHistory.suffix(remainderCount)
-    
-    let avgCore = scoreManager.averageCore(from: Array(remainderCore))
-    let avgAux = scoreManager.averageAux(from: Array(remainderAux))
-    
-    coreScoreHistory10Minute.append(avgCore)
-    auxScoreHistory10Minute.append(avgAux)
-    
-    let focusCount = zip(remainderCore, remainderAux)
-      .filter { scoreManager.calculateTotal(core: $0.0, aux: $0.1) >= 60 }
-      .count
-    let ratio = Float(focusCount * 30) / Float(remainderCount * 30) * 100
-    focusRatios.append(ratio)
-  }
-  
+  /// TaskData를 생성하고 SwiftData에 저장합니다.
   private func saveTaskDataAndSaveToSwiftData(context: ModelContext) {
-    let avgScore = (Float(focusTime) / Float(secondsElapsed)) * 100
-    let data = TaskDataModel(
-      startTime: Date().addingTimeInterval(-TimeInterval(secondsElapsed)),
-      endTime: Date(),
-      averageScore: avgScore,
-      focusRatio: focusRatios,
-      focusTime: focusTime,
-      durationTime: secondsElapsed,
-      snoozeImageDatas: snoozeImageDatas,
-      avgCoreDatas: coreScoreHistory10Minute,
-      avgAuxDatas: auxScoreHistory10Minute
-    )
-    self.taskData = data
-    
-    guard let taskData = self.taskData else {
+    guard let startTime = measurementStartTime else {
+      print("❌ 측정 시작 시간을 찾을 수 없습니다.")
       return
     }
     
+    let endTime = Date()
+    let averageScore = calculateOverallAverageScore()
+    let focusTime = calculateFocusTime()
+    
+    let taskData = TaskDataModel(
+      startTime: startTime,
+      endTime: endTime,
+      averageScore: averageScore,
+      focusRatio: [], // TaskDataModel에서 계산됨
+      focusTime: focusTime,
+      durationTime: secondsElapsed,
+      snoozeImageDatas: snoozeImageDatas,
+      coreScoreSegments: coreScoreSegments,
+      auxScoreSegments: auxScoreSegments
+    )
+    
+    self.taskData = taskData
+    
+    // SwiftData에 저장
     swiftDataManager.saveTaskDataToSwiftData(context: context, taskData: taskData)
+    
+    print("📊 측정 완료 요약:")
+    print("   - 총 측정 시간: \(secondsElapsed)초")
+    print("   - 30초 구간 수: \(coreScoreSegments.count)개")
+    print("   - 평균 점수: \(String(format: "%.1f", averageScore))점")
+    print("   - 집중 시간: \(focusTime)초")
+    print("   - 집중 비율: \(String(format: "%.1f", taskData.calculateFocusRatio() * 100))%")
   }
 }

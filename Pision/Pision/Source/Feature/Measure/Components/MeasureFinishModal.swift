@@ -45,7 +45,7 @@ extension MeasureFinishModal {
         } else {
           VStack(spacing: 3) {
             HStack(spacing: 0) {
-              Text("10분 이상 측정해야 결과를 확인")
+              Text("1분 이상 측정해야 결과를 확인")
                 .foregroundStyle(.BR_05)
               Text("할 수 있어요.")
                 .foregroundStyle(.B_30)

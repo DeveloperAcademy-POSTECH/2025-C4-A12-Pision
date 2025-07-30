@@ -4,10 +4,6 @@
 //
 //  Created by 여성일 on 7/13/25.
 //
-//
-//import Foundation
-//import Vision
-//
 
 import Foundation
 import Vision
@@ -24,8 +20,19 @@ final class VisionManager: ObservableObject {
   @Published private(set) var blinkCount: Int = 0
   @Published private(set) var isFistHeld: Bool = false
   
+  // 30초 단위 측정을 위한 새로운 배열들
+  @Published private(set) var currentSegmentEars: [Float] = []
+  @Published private(set) var currentSegmentYaws: [Float] = []
+  @Published private(set) var currentSegmentMLPredictions: [String] = []
+  @Published private(set) var currentSegmentBlinkCount: Int = 0
+  
+  // 30초 단위 결과를 저장하는 배열들
+  @Published private(set) var coreScoreSegments: [CoreScoreModel] = []
+  @Published private(set) var auxScoreSegments: [AuxScoreModel] = []
+  
   var onSnoozeDetected: ((Bool) -> Void)?
   var onFistDetected: (() -> Void)?
+  var onSegmentCompleted: ((CoreScoreModel, AuxScoreModel) -> Void)?
   
   // General var
   private let sequenceHandler = VNSequenceRequestHandler()
@@ -36,6 +43,10 @@ final class VisionManager: ObservableObject {
   private var snoozeCounter = 0
   private let snoozeThresholdFrames = 30 // 약 2초 (15fps 기준)
   private var isSnoozeAlreadyDetected = false
+  
+  // 30초 타이머 관련
+  private var segmentTimer: Timer?
+  private var segmentStartTime: Date?
   
   // Manager
   private let mlManager = MLManager()!
@@ -54,6 +65,80 @@ extension VisionManager {
     yaws.removeAll()
     mlPredictions.removeAll()
     blinkCount = 0
+    
+    // 30초 단위 데이터 초기화
+    currentSegmentEars.removeAll()
+    currentSegmentYaws.removeAll()
+    currentSegmentMLPredictions.removeAll()
+    currentSegmentBlinkCount = 0
+    
+    // 결과 배열 초기화
+    coreScoreSegments.removeAll()
+    auxScoreSegments.removeAll()
+    
+    // 타이머 정리
+    stopSegmentTimer()
+  }
+  
+  /// 30초 단위 측정을 시작합니다.
+  func startSegmentMeasurement() {
+    stopSegmentTimer()
+    segmentStartTime = Date()
+    
+    segmentTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in
+      self?.completeCurrentSegment()
+    }
+  }
+  
+  /// 30초 단위 측정을 중지합니다.
+  func stopSegmentTimer() {
+    segmentTimer?.invalidate()
+    segmentTimer = nil
+  }
+  
+  /// 현재 30초 구간을 완료하고 점수를 계산합니다.
+  private func completeCurrentSegment() {
+    // 현재 구간의 데이터로 점수 계산
+    let coreScore = scoreManager.calculateCore(
+      from: currentSegmentEars,
+      yaws: currentSegmentYaws,
+      blinkCount: currentSegmentBlinkCount
+    )
+    
+    let auxScore = scoreManager.calculateAux(
+      from: currentSegmentEars,
+      yaws: currentSegmentYaws,
+      ml: currentSegmentMLPredictions,
+      blinkCount: currentSegmentBlinkCount
+    )
+    
+    // 결과 저장
+    coreScoreSegments.append(coreScore)
+    auxScoreSegments.append(auxScore)
+    
+    // 전체 데이터에도 추가
+    ears.append(contentsOf: currentSegmentEars)
+    yaws.append(contentsOf: currentSegmentYaws)
+    mlPredictions.append(contentsOf: currentSegmentMLPredictions)
+    blinkCount += currentSegmentBlinkCount
+    
+    // 콜백 호출
+    onSegmentCompleted?(coreScore, auxScore)
+    
+    // 현재 구간 데이터 초기화
+    currentSegmentEars.removeAll()
+    currentSegmentYaws.removeAll()
+    currentSegmentMLPredictions.removeAll()
+    currentSegmentBlinkCount = 0
+  }
+  
+  /// 측정 완료 시 마지막 구간 처리
+  func finalizeMeasurement() {
+    // 마지막 구간이 30초 미만이어도 처리
+    if !currentSegmentEars.isEmpty {
+      completeCurrentSegment()
+    }
+    stopSegmentTimer()
   }
   
   /// 얼굴의 랜드마크 정보를 처리하여 고개 회전 각도(YAW), 눈 비율(EAR), 눈 깜빡임 여부를 계산합니다.
@@ -72,7 +157,7 @@ extension VisionManager {
       for face in results {
         if let yaw = face.yaw?.floatValue {
           let absYaw = abs(yaw)
-          yaws.append(absYaw)
+          currentSegmentYaws.append(absYaw)
         }
         
         if let landmarks = face.landmarks,
@@ -81,7 +166,7 @@ extension VisionManager {
           let leftEAR = calculateEAR(leftEye)
           let rightEAR = calculateEAR(rightEye)
           let avgEAR = (leftEAR + rightEAR) / 2.0
-          ears.append(avgEAR)
+          currentSegmentEars.append(avgEAR)
           countBlink(leftEAR: CGFloat(leftEAR), rightEAR: CGFloat(rightEAR))
         }
       }
@@ -110,28 +195,6 @@ extension VisionManager {
     }
   }
   
-  /// 사람의 몸 자세를 분석하여 머신러닝 모델로부터 예측 결과(레이블)를 받아옵니다.
-  /// Vision 프레임워크를 사용해 포즈를 추출하고, 추출된 첫 번째 결과를 ML 모델에 입력하여 동작을 분류합니다.
-  /// - Parameter pixelBuffer: 분석할 영상 프레임의 픽셀 버퍼입니다.
-//  func processMeasureBodyPose(pixelBuffer: CVPixelBuffer) {
-//    do {
-//      try sequenceHandler.perform([poseRequest], on: pixelBuffer)
-//      guard let first = poseRequest.results?.first else { return }
-//      
-//      let label = mlManager.bodyPosePredict(from: first)
-//      DispatchQueue.main.async {
-//        self.mlPredictions.append(label)
-//        
-//        let lastEAR = self.ears.last ?? 1.0
-//        let isSnooze = (label == "Snooze" && lastEAR < 0.1)
-//        print(lastEAR, "lastEAR")
-//        self.onSnoozeDetected?(isSnooze)
-//      }
-//    } catch {
-//      print("Body Pose 처리 실패")
-//    }
-//  }
-  
   func processMeasureBodyPose(pixelBuffer: CVPixelBuffer) {
     do {
       try sequenceHandler.perform([poseRequest], on: pixelBuffer)
@@ -140,9 +203,9 @@ extension VisionManager {
       let label = mlManager.bodyPosePredict(from: first)
       
       DispatchQueue.main.async {
-        self.mlPredictions.append(label)
+        self.currentSegmentMLPredictions.append(label)
         
-        let lastEAR = self.ears.last ?? 1.0
+        let lastEAR = self.currentSegmentEars.last ?? 1.0
         let isSnoozePose = (label == "Snooze")
         let isEyesClosed = lastEAR < 0.1
         
@@ -236,7 +299,7 @@ extension VisionManager {
       if !isBlink { isBlink = true }
     } else {
       if isBlink {
-        blinkCount += 1
+        currentSegmentBlinkCount += 1
         isBlink = false
       }
     }
