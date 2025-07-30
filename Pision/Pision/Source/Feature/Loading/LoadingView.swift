@@ -11,9 +11,6 @@ import SwiftData
 struct LoadingView: View {
   @EnvironmentObject private var coordinator: Coordinator
   
-  @Query(sort: \TaskData.startTime, order: .reverse)
-  private var allTasks: [TaskData]
-  
   @State private var progress: Int = 0
   @State private var timer: Timer?
   @State private var showAlternateMessage: Bool = false
@@ -22,34 +19,29 @@ struct LoadingView: View {
 // MARK: - View
 extension LoadingView {
   var body: some View {
-    ZStack {
-      Image("background")
-        .resizable()
-        .ignoresSafeArea()
-      
-      VStack(spacing: 20) {
-        Text(showAlternateMessage
-             ? "조금만 기다려 주세요"
-             : "사용자의 측정기록을 바탕으로 집중도를 측정하고 있어요!")
-        .font(.spoqaHanSansNeo(type: .bold, size: 16))
-        .foregroundStyle(.BR_20)
-        .multilineTextAlignment(.center)
-        .frame(maxWidth: .infinity)
-        .frame(height: 102)
-        .background(.W_00)
-        .clipShape(RoundedRectangle(cornerRadius: 20))
-        .padding(.horizontal, 69)
-        
-        LottieView(animation: "zipzoongi")
-          .frame(width: 300, height: 300)
-        
-        Text("\(progress)%")
-          .font(.FontSystem.h3)
-          .foregroundStyle(.BR_00)
-          .padding(.horizontal)
-        
-        LottieView(animation: "Loading")
-          .frame(width: 100, height: 100)
+    GeometryReader { geo in
+      ZStack {
+        Image("background")
+          .resizable()
+          .ignoresSafeArea()
+
+        CustomLottieView(animation: "loading_character")
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
+          .ignoresSafeArea()
+
+        VStack(spacing: 20) {
+          Spacer()
+          Text("\(progress)%")
+            .font(.FontSystem.h0)
+            .foregroundStyle(.BR_00)
+            .padding(.horizontal)
+
+          CustomLottieView(animation: "Loading")
+            .frame(width: 100, height: 50)
+            .padding(.bottom, geo.size.height * 0.10)
+
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
       }
     }
     .navigationBarBackButtonHidden()
@@ -70,20 +62,17 @@ extension LoadingView {
 extension LoadingView {
   private func startProgress() {
     let totalTicks = 100
-    let duration = 2.5
+    let duration = 4.5
     let interval = duration / Double(totalTicks)
     
     progress = 0
     timer?.invalidate()
     
-    
     timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { t in
       if progress >= 100 {
         t.invalidate()
         DispatchQueue.main.async {
-          if let recentTask = allTasks.first {
-            coordinator.push(.analyze(recentTask, true))
-          }
+          coordinator.popToRoot()
         }
       } else {
         progress += 1
@@ -92,6 +81,9 @@ extension LoadingView {
   }
 }
 
-//#Preview {
-//  LoadingView()
-//}
+#Preview {
+  LoadingView()
+    .environmentObject(Coordinator(/* 필요 파라미터 있으면 채우기 */))
+  
+}
+
