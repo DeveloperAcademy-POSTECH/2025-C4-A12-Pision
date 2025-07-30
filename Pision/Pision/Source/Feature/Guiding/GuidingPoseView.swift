@@ -45,7 +45,7 @@ extension GuidingPoseView {
         VStack {
           Image(.lefthand)
             .resizable()
-            .frame(width: 181, height: 332)
+            .frame(width: 223, height: 223)
         }
       }
       Spacer()
