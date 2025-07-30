@@ -34,6 +34,7 @@ struct InfoSheetView: View {
       HStack {
         Spacer()
         
+        // x 버튼
         Button(action: {
           isPresented = false
         }) {
@@ -44,8 +45,8 @@ struct InfoSheetView: View {
             .foregroundColor(.W_00)
         }
       }
-      .padding(.top, 15)
-      .padding(.trailing, 15)
+//      .padding(.top, 15)
+      .padding(.trailing, 18)
       
       // 아이콘과 제목
       HStack(spacing: 38) {
@@ -68,6 +69,7 @@ struct InfoSheetView: View {
 //      .background(Color.green).opacity(0.3)
 
     }
+//    .background(Color.green).opacity(0.3)
     .frame(height: 168)
     .background(Color.BR_00)
   }
