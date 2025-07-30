@@ -239,7 +239,7 @@ struct AuxScoreView: View {
   private var xAxisLabels: some View {
     HStack(spacing: 0) {
       HStack {
-        Text("10분")
+        Text("30초")
           .font(.spoqaHanSansNeo(type: .regular, size: 12))
           .foregroundColor(Color.B_00)
         Spacer()

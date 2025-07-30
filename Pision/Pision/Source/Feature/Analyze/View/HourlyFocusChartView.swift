@@ -208,7 +208,7 @@ extension AnalyzeView {
     /// x축 시간 레이블 (30분 단위)
     private var xAxisLabels: some View {
       HStack(spacing: 16) {
-        Text("10분")
+        Text("30초")
           .font(.spoqaHanSansNeo(type: .regular, size: 12))
         HStack(spacing: 32.3) {
           ForEach(Array(taskData.focusRatio.enumerated()), id: \.offset) { idx, _ in
