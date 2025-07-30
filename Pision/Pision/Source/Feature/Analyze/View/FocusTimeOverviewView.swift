@@ -91,7 +91,7 @@ extension AnalyzeView {
                 .foregroundColor(difference >= 0 ? .green : .red)
               
               Text("\(difference >= 0 ? "+" : "")\(difference)점")
-                .font(.system(size: 12, weight: .medium))
+                .font(.system(size: 24, weight: .bold))
                 .foregroundColor(difference >= 0 ? .green : .red)
             }
             

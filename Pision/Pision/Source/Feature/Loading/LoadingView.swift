@@ -10,6 +10,7 @@ import SwiftData
 
 struct LoadingView: View {
   @EnvironmentObject private var coordinator: Coordinator
+  @Environment(\.modelContext) private var context
   
   @State private var progress: Int = 0
   @State private var timer: Timer?
@@ -36,10 +37,19 @@ extension LoadingView {
             .foregroundStyle(.BR_00)
             .padding(.horizontal)
 
-          CustomLottieView(animation: "Loading")
-            .frame(width: 100, height: 50)
-            .padding(.bottom, geo.size.height * 0.10)
-
+          // Loading 애니메이션이 없는 경우 대체
+          Group {
+            if Bundle.main.path(forResource: "Loading", ofType: "json") != nil {
+              CustomLottieView(animation: "Loading")
+                .frame(width: 100, height: 50)
+            } else {
+              ProgressView()
+                .progressViewStyle(CircularProgressViewStyle(tint: .BR_00))
+                .scaleEffect(1.5)
+                .frame(height: 50)
+            }
+          }
+          .padding(.bottom, geo.size.height * 0.10)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
       }
@@ -72,18 +82,35 @@ extension LoadingView {
       if progress >= 100 {
         t.invalidate()
         DispatchQueue.main.async {
-          coordinator.popToRoot()
+          // 최신 TaskData 가져와서 AnalyzeView로 이동
+          fetchLatestTaskDataAndNavigate()
         }
       } else {
         progress += 1
       }
     }
   }
+  
+  private func fetchLatestTaskDataAndNavigate() {
+    let fetchDescriptor = FetchDescriptor<TaskData>()
+    
+    do {
+      let results = try context.fetch(fetchDescriptor)
+      if let latestTask = results.sorted(by: { $0.startTime > $1.startTime }).first {
+        // 최신 TaskData로 AnalyzeView 이동
+        coordinator.push(.analyze(latestTask, true))
+      } else {
+        // TaskData가 없으면 홈으로
+        coordinator.popToRoot()
+      }
+    } catch {
+      print("❌ TaskData 조회 실패: \(error)")
+      coordinator.popToRoot()
+    }
+  }
 }
 
 #Preview {
   LoadingView()
-    .environmentObject(Coordinator(/* 필요 파라미터 있으면 채우기 */))
-  
+    .environmentObject(Coordinator())
 }
-
